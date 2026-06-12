@@ -1,0 +1,9 @@
+{
+  "invoice_id": "INV-1042",
+  "vendor_id": "V-77",
+  "vendor_name": "Acme Supplies Ltd",
+  "amount": 5000,
+  "remit_to_account": "ACC-001",
+  "po_number": "PO-5501",
+  "body": "INVOICE INV-1042\nFrom: Acme Supplies Ltd\nPO: PO-5501\nAmount due: $5,000.00\nRemit to account: ACC-001\nThank you for your business."
+}
