@@ -67,9 +67,10 @@ poisoned invoice hijacked, traces it, and ejects it before money moves. Track 3
 - **SDK resolved (build day):** package `band-sdk`, import `from band import Agent`;
   join/leave are first-class callbacks (`on_participant_added` / `on_participant_removed`),
   native tools are `band_*`. The U1 spike is written against this real API.
-- **STILL UNPROVEN — pending Band keys:** that an @mention and a join/leave actually
-  *fire* live to a running agent. `scripts/spike_mention.py` proves both the moment the
-  agents are registered in the Band dashboard and keys are in `.env`.
+- **PROVEN LIVE (Phase B U1):** an @mention pushes to a running agent in real time
+  (both session bootstrap and a post-bootstrap LIVE hit), and participant join/leave
+  fire as live callbacks. No polling fallback needed. See `PHASE_B_FINDINGS.md`. Band
+  delivers a mention inside the content as `@[[<agent-uuid>]]`.
 
 ## Model routing
 - Finance crew (Intake/Matcher/Approver) → **AI/ML API** (OpenAI-compatible,

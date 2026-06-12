@@ -1,6 +1,6 @@
 ---
 title: "feat: Phase B — prove the live agent loop + finance-crew happy path"
-status: active
+status: completed
 date: 2026-06-13
 type: feat
 depth: lightweight

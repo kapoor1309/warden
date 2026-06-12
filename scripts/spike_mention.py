@@ -75,11 +75,12 @@ class LoggerAdapter(SimpleAdapter):
             text = msg.format_for_llm()
         except Exception:
             text = repr(msg)
-        if is_session_bootstrap:
-            print(f"[listener] session bootstrap in room {room_id}")
-            return
-        print(f"[listener] MESSAGE in {room_id}: {text}")
-        SEEN["mentions"].append(text)
+        # BOOTSTRAP = the room's first delivery to this agent (may carry history).
+        # LIVE = a message pushed after the session is already established. A LIVE
+        # hit is the strong proof that mentions push in real time.
+        tag = "BOOTSTRAP" if is_session_bootstrap else "LIVE"
+        print(f"[listener] MESSAGE ({tag}) in {room_id}: {text}")
+        SEEN["mentions"].append({"tag": tag, "text": text})
 
     async def on_started(self, agent_name, agent_description):
         print(f"[listener] started as {agent_name}")
@@ -121,12 +122,23 @@ async def main():
     sender.add_participant(chat_id, listener_id)
     await asyncio.sleep(2)  # listener should receive a join for itself
 
+    # Mention item shape per the SDK: {"id": <uuid>, "handle"?, "name"?}. If the
+    # content does not @-reference the name, Band prepends it automatically.
     sender.send_message(
         chat_id,
-        content=f"@{LISTENER.lower()} ping from the U1 spike — did this reach you?",
-        mentions=[{"participant_id": listener_id}],
+        content="ping from the U1 spike — did this reach you?",
+        mentions=[{"id": listener_id, "name": "Warden"}],
     )
-    await asyncio.sleep(4)  # R1: did the mention push to the listener?
+    await asyncio.sleep(4)  # R1a: first mention (may arrive as bootstrap)
+
+    # Second mention AFTER the session is established — a LIVE hit here is the
+    # strong proof that mentions push in real time, not just as joined-room history.
+    sender.send_message(
+        chat_id,
+        content="second ping — this one should arrive live",
+        mentions=[{"id": listener_id, "name": "Warden"}],
+    )
+    await asyncio.sleep(4)  # R1b: live mention push
 
     # 3. Add then remove a third participant. R2: do join/leave push?
     sender.add_participant(chat_id, third_id)
@@ -134,17 +146,19 @@ async def main():
     sender.remove_participant(chat_id, third_id)
     await asyncio.sleep(3)
 
-    run_task.cancel()
+    # Graceful stop so the WS unsubscribes cleanly (avoids the teardown noise).
     try:
-        await run_task
-    except asyncio.CancelledError:
-        pass
+        await listener.stop()
+        await asyncio.wait_for(run_task, timeout=10)
+    except (asyncio.CancelledError, asyncio.TimeoutError):
+        run_task.cancel()
 
     _write_findings(chat_id)
 
 
 def _write_findings(chat_id):
     mention_ok = bool(SEEN["mentions"])
+    live_ok = any(m.get("tag") == "LIVE" for m in SEEN["mentions"])
     join_ok = bool(SEEN["joins"])
     leave_ok = bool(SEEN["leaves"])
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "PHASE_B_FINDINGS.md")
@@ -155,13 +169,16 @@ def _write_findings(chat_id):
         "needed a *running* agent: does an @mention push to it, and does a\n",
         "join/leave push to it.\n\n",
         "## Quick scorecard\n\n",
-        f"- Did a live @mention reach the running listener? **{'YES' if mention_ok else 'NO'}**.\n",
+        f"- Did an @mention reach the running listener at all? **{'YES' if mention_ok else 'NO'}**.\n",
+        f"- Did a LIVE (post-bootstrap) @mention push to it? **{'YES' if live_ok else 'NO'}**.\n",
         f"- Did a participant JOIN push to the listener? **{'YES' if join_ok else 'NO'}**.\n",
         f"- Did a participant LEAVE push to the listener? **{'YES' if leave_ok else 'NO'}**.\n",
         "\n## What this means\n\n",
     ]
-    if mention_ok:
-        lines.append("- Mention delivery works. Warden can be tagged on every handoff and will\n  receive it live. The design's core assumption holds.\n")
+    if live_ok:
+        lines.append("- Mention delivery works LIVE. Warden can be tagged on every handoff and\n  receives it in real time. The design's core assumption holds.\n")
+    elif mention_ok:
+        lines.append("- Mentions arrive, but only observed as session bootstrap (joined-room\n  history), not a live push. Good enough for Warden if it is in the room before\n  handoffs; re-confirm a live hit before relying on mid-session tagging.\n")
     else:
         lines.append("- **Mention did NOT arrive.** Stop and debug the mention payload shape /\n  subscription before building the crew — Warden cannot watch handoffs without it.\n")
     if join_ok and leave_ok:
