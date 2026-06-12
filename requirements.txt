@@ -1,10 +1,7 @@
-# Band SDK + framework adapters.
-# Docs install these via uv, e.g.  uv add "band-sdk[langgraph]"
-# With pip, the bracket extras work the same:
-band-sdk[langgraph]
-band-sdk[crewai]
-band-sdk[anthropic]
-band-sdk[claude_sdk]
+# Band SDK. Real package is `band-sdk` (1.0.0); top-level import is `band`.
+# Framework-adapter extras (e.g. [langgraph]) are unverified — add them when
+# wiring the live crew. The U1 spike uses the built-in SimpleAdapter, no extras.
+band-sdk
 
 # Core
 python-dotenv

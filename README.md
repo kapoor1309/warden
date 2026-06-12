@@ -61,16 +61,25 @@ require new code here.
 
 Warden does **not** trust `claimed_source`. It re-reads `sources/` and compares.
 
-## Verified Band facts (checked against live docs on build day)
+## Verified Band facts (SDK introspected + Phase A live run)
 
-- Install: `uv add "band-sdk[langgraph]"` (extras: `crewai`, `anthropic`, `claude_sdk`, …). Import is `from thenvoi import Agent`.
-- `Agent.create(adapter=, agent_id=, api_key=, ws_url=, rest_url=)`.
-- Adapters: `LangGraphAdapter`, `CrewAIAdapter`, `AnthropicAdapter`, `ClaudeSDKAdapter`.
-- REST (auth header `X-API-Key`): `GET /agent/me`, `POST /agent/chats`,
+- Install: `pip install band-sdk` (1.0.0 on build day). Import is **`from band import Agent`**
+  — the earlier `from thenvoi import Agent` was wrong (`import thenvoi` fails; the
+  top-level module is `band`).
+- `Agent.create(adapter=, agent_id=, api_key=, ws_url=, rest_url=,
+  on_participant_added=, on_participant_removed=)`; run with `await agent.run()`.
+- Adapters: subclass `band.agent.SimpleAdapter` (no-LLM — the U1 spike uses this),
+  or a framework adapter under `band.integrations` (confirm exact LangGraph/CrewAI/
+  Anthropic adapter names when wiring the live crew).
+- **Join/leave is a first-class callback** (`on_participant_added` /
+  `on_participant_removed`) — not polling. Live firing still pending Band keys (U1).
+- Native tools are `band_*`: `band_create_chatroom`, `band_add_participant`,
+  `band_get_participants`, `band_remove_participant`, `band_send_message`,
+  `band_send_event`, `band_lookup_peers` (NOT `thenvoi_*`).
+- REST (auth header `X-API-Key`, verified Phase A): `GET /agent/me`, `POST /agent/chats`,
   `POST|GET /agent/chats/{id}/participants`, `DELETE /agent/chats/{id}/participants/{pid}`,
   `POST /agent/chats/{id}/messages`, `POST /agent/chats/{id}/events`,
-  `GET /agent/chats/{id}/context` (messages sent by + mentioning this agent —
-  this is the mention-scoped view the design relies on).
+  `GET /agent/chats/{id}/context` (mention-scoped view the design relies on).
 - Free tier: ≤10 agents, ≤50 rooms, 24h retention.
 
 ## Running the offline core (no keys needed)

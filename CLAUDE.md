@@ -64,9 +64,12 @@ poisoned invoice hijacked, traces it, and ejects it before money moves. Track 3
 - Human API is enterprise-only → don't build human-in-loop on it; use the Band web UI
   (the human owner sees everything) or a mention to a human.
 - Free tier: ≤10 agents, ≤50 rooms, 24h retention.
-- **STILL UNPROVEN** (Phase B, needs a live LLM agent): does an @mention actually
-  push to a listening agent over WebSocket, and does a live join/leave push arrive?
-  Prove both before building the full crew.
+- **SDK resolved (build day):** package `band-sdk`, import `from band import Agent`;
+  join/leave are first-class callbacks (`on_participant_added` / `on_participant_removed`),
+  native tools are `band_*`. The U1 spike is written against this real API.
+- **STILL UNPROVEN — pending Band keys:** that an @mention and a join/leave actually
+  *fire* live to a running agent. `scripts/spike_mention.py` proves both the moment the
+  agents are registered in the Band dashboard and keys are in `.env`.
 
 ## Model routing
 - Finance crew (Intake/Matcher/Approver) → **AI/ML API** (OpenAI-compatible,
