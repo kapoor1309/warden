@@ -1,0 +1,21 @@
+# Band SDK + framework adapters.
+# Docs install these via uv, e.g.  uv add "band-sdk[langgraph]"
+# With pip, the bracket extras work the same:
+band-sdk[langgraph]
+band-sdk[crewai]
+band-sdk[anthropic]
+band-sdk[claude_sdk]
+
+# Core
+python-dotenv
+httpx
+pyyaml
+
+# LLM frameworks the agents are spread across
+langchain-openai
+langgraph
+crewai
+anthropic
+
+# Tests (offline)
+pytest
