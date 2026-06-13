@@ -46,11 +46,34 @@ poisoned invoice hijacked, traces it, and ejects it before money moves. Track 3
 - **Out of scope:** multiple colluding agents, a compromised Warden. Say this in the
   pitch — scoping is strength, not a gap.
 
-## Proof discipline (bias-proof — this is half the score)
-- We never author the attacks Warden is graded on. Payloads come from public
-  benchmarks (AgentDojo, InjecAgent) or a judge typing one live.
-- Always show both directions: a real attack **caught** AND a weird-but-honest
-  invoice staying **quiet**. Not crying wolf is the whole game.
+## Attacks are real — NON-NEGOTIABLE
+The whole project's credibility rests on this. **We never invent the attacks. No
+toy "lock-and-key" analogies, no straw-man payloads we wrote to be easy to catch.**
+Catching an attack you authored proves nothing. Attacks must be **real, maximum-
+capability, and third-party.**
+
+- **Pull from peer-reviewed, open-source agent-attack benchmarks** — the same ones
+  the field uses to grade defenses:
+  - **AgentDojo** (Invariant Labs) — dynamic tool-calling injection; its **Banking
+    suite** is the closest fit to invoice/payment fraud. 7000+ security test cases.
+  - **InjecAgent** — 1,000 indirect-prompt-injection cases (data-stealing +
+    unauthorized tool calls), Base and Enhanced variants.
+  - **AgentDyn** (built on AgentDojo), **ASB (Agent Security Bench)** — broader suites.
+- **Use the strong technique families, not the easy ones:** indirect injection via
+  ingested content; **semantic persuasion that never says "ignore your instructions"**;
+  encoded payloads (base64, non-English); **ChatInject-style chat-template abuse**
+  (directly relevant — our agents talk over Band chat); zero-click exfil patterns
+  (e.g. Markdown-image, CVE-2025-32711). Prefer **adaptive** attacks — "the attacker
+  moves second" — over static ones.
+- **The judge can supply their own** attack live, and it must still be caught.
+- A hand-written invoice may exist ONLY as a dev stand-in while wiring the loop; it is
+  never what we demo or claim results on. Replace it with a benchmark payload before
+  any demo, screenshot, or submission.
+- Always show both directions: a real attack **caught** AND a weird-but-honest invoice
+  staying **quiet**. Not crying wolf is half the game.
+
+Why: a defense is only worth anything if it survives the best real attacks the field
+can throw — ideally attacks we did not write and cannot predict.
 
 ## Verified Band facts (Phase A, live-tested — see PHASE_A_FINDINGS.md)
 - REST base `https://app.band.ai/api/v1`, auth header `X-API-Key`.
