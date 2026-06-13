@@ -20,6 +20,8 @@ from band.core.simple_adapter import SimpleAdapter
 
 from agents.identity import handle_for
 from warden import invariants
+from warden import paygate
+from warden import record as record_lib
 from warden.sources import Sources
 
 _JSON_FENCE = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL)
@@ -58,6 +60,7 @@ class WardenAdapter(SimpleAdapter):
         super().__init__()
         self.sources = Sources.from_dir()
         self.investigator_handle = handle_for("INVESTIGATOR")
+        self.payer_handle = handle_for("PAYER") if os.getenv("PAYER_AGENT_ID") else None
 
     async def on_message(self, msg, tools, history, participants_msg,
                          contacts_msg, *, is_session_bootstrap, room_id):
@@ -81,6 +84,7 @@ class WardenAdapter(SimpleAdapter):
                 message_type="thought",
                 metadata={"invoice_id": inv_id, "stage": stage, "verdict": "clean"},
             )
+            await self._maybe_sign_off(record, inv_id, tools)
             return
 
         print(f"[Warden] FLAG: {inv_id} @ stage '{stage}' -> {violations}")
@@ -96,6 +100,28 @@ class WardenAdapter(SimpleAdapter):
                 f"Please trace the chain and confirm."
             ),
             mentions=[self.investigator_handle],
+        )
+
+    async def _maybe_sign_off(self, rec, inv_id, tools):
+        """On a clean 'approved' handoff, issue a signed sign-off to the Payer over
+        the AUTHORITATIVE (re-derived) account — never an agent's claim. Only fires
+        when a Payer is configured (PAYER_AGENT_ID)."""
+        completed = rec.get("completed_stages", []) or []
+        if not (self.payer_handle and "approved" in completed and "paid" not in completed):
+            return
+        vid = rec.get("vendor_id")
+        on_file = self.sources.vendor_account(vid)
+        po = self.sources.purchase_order(inv_id)
+        if not on_file or not po:
+            return
+        amount = po.get("amount")
+        stages = list(completed)
+        token = paygate.sign(inv_id, on_file, amount, stages)
+        signoff = {"warden_signoff": True, "invoice_id": inv_id, "vendor_id": vid,
+                   "payee": on_file, "amount": amount, "stages": stages, "token": token}
+        await tools.send_message(
+            content=record_lib.to_message(signoff, f"Warden sign-off: {inv_id} clean through approved."),
+            mentions=[self.payer_handle],
         )
 
 
