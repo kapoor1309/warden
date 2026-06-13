@@ -8,7 +8,10 @@ python-dotenv
 httpx
 pyyaml
 
-# LLM frameworks the agents are spread across
+# LLM frameworks. Only Intake/Investigator use an LLM (LangGraph ReAct via the
+# band LangGraph adapter, which imports langchain.agents.create_agent). Matcher,
+# Approver, Warden, Enforcer, Payer are no-LLM SimpleAdapters and need none of these.
+langchain
 langchain-openai
 langgraph
 crewai

@@ -21,12 +21,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from band_client import BandClient
+from agents.identity import handle_for
 from agents.intake import build_intake
+from agents.matcher import build_matcher
+from agents.approver import build_approver
 from warden.warden_agent import build_warden
 
 WARDEN_KEY = os.getenv("WARDEN_API_KEY")
 INTAKE_ID = os.getenv("INTAKE_AGENT_ID")
-INTAKE_HANDLE = (os.getenv("INTAKE_HANDLE") or "").lstrip("@")
+INTAKE_HANDLE = handle_for("INTAKE")
 
 # Every agent we want mentionable must be a participant of the room.
 PARTICIPANTS = ["INTAKE", "MATCHER", "APPROVER", "INVESTIGATOR", "ENFORCER"]
@@ -56,9 +59,12 @@ async def main():
     # 2. Start the live agents (each run() blocks, so run them as tasks).
     warden = build_warden()
     intake = build_intake()
-    tasks = [asyncio.create_task(warden.run()), asyncio.create_task(intake.run())]
-    print("Warden + Intake are connecting...")
-    await asyncio.sleep(9)
+    matcher = build_matcher()
+    approver = build_approver()
+    crew = [warden, intake, matcher, approver]
+    tasks = [asyncio.create_task(a.run()) for a in crew]
+    print("Warden + Intake + Matcher + Approver are connecting...")
+    await asyncio.sleep(10)
 
     # 3. Drop the clean invoice in, mentioning Intake.
     print("\n>>> Dropping a CLEAN invoice into the room (mentioning Intake)\n")
@@ -68,8 +74,8 @@ async def main():
         mentions=[{"id": INTAKE_ID, "name": "Invoice Intake", "handle": INTAKE_HANDLE}],
     )
 
-    # 4-5. Give Intake's LLM time to think + hand off, and Warden time to judge.
-    await asyncio.sleep(35)
+    # 4-5. Full chain: Intake LLM hands off -> Matcher -> Approver, Warden judges each.
+    await asyncio.sleep(50)
 
     # 6. Print the conversation.
     print("\n================ ROOM TRANSCRIPT ================")
@@ -86,7 +92,7 @@ async def main():
         print(f"(could not fetch transcript: {e})")
     print("\n=================================================")
 
-    for a in (warden, intake):
+    for a in crew:
         try:
             await a.stop()
         except Exception:

@@ -48,6 +48,7 @@ def build_record(*, invoice_id, vendor_id, completed_stages, actor_role, action,
     return {
         "invoice_id": invoice_id,
         "vendor_id": vendor_id,
+        "stage": list(completed_stages)[-1],
         "completed_stages": list(completed_stages),
         "actor_role": actor_role,
         "action": action,
