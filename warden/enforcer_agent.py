@@ -17,17 +17,21 @@ import re
 from band import Agent
 from band.core.simple_adapter import SimpleAdapter
 
-WARDEN_HANDLE = (os.getenv("WARDEN_HANDLE") or "@parshiv.kapoor/warden").lstrip("@")
-
-# handle -> agent_id, built from .env so we can resolve who to remove reliably.
-_HANDLE_TO_ID = {}
-for _name in ["INTAKE", "MATCHER", "APPROVER", "WARDEN", "INVESTIGATOR", "ENFORCER"]:
-    _h = (os.getenv(f"{_name}_HANDLE") or "").lstrip("@")
-    _i = os.getenv(f"{_name}_AGENT_ID")
-    if _h and _i:
-        _HANDLE_TO_ID[_h] = _i
+from agents.identity import handle_for, SLUGS
 
 _JSON_FENCE = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL)
+
+
+def _handle_to_id():
+    """handle -> agent_id for every role we have an id for. Built from identity +
+    env so the Enforcer can resolve who to remove regardless of which developer
+    registered the agents."""
+    mapping = {}
+    for name in SLUGS:
+        aid = os.getenv(f"{name}_AGENT_ID")
+        if aid:
+            mapping[handle_for(name)] = aid
+    return mapping
 
 
 def extract_verdict(text: str):
@@ -57,6 +61,11 @@ def extract_verdict(text: str):
 
 
 class EnforcerAdapter(SimpleAdapter):
+    def __init__(self):
+        super().__init__()
+        self.warden_handle = handle_for("WARDEN")
+        self.handle_to_id = _handle_to_id()
+
     async def on_message(self, msg, tools, history, participants_msg,
                          contacts_msg, *, is_session_bootstrap, room_id):
         content = getattr(msg, "content", None) or getattr(msg, "text", None) or ""
@@ -75,7 +84,7 @@ class EnforcerAdapter(SimpleAdapter):
             return
 
         target_handle = (verdict.get("compromised_agent") or "").lstrip("@")
-        target_id = _HANDLE_TO_ID.get(target_handle)
+        target_id = self.handle_to_id.get(target_handle)
         print(f"[Enforcer] CONTAINING {inv_id}: removing {target_handle} ({target_id})")
 
         # 1. Remove the compromised agent.
@@ -101,10 +110,10 @@ class EnforcerAdapter(SimpleAdapter):
         # 3. Escalate to a human for final sign-off.
         await tools.send_message(
             content=(
-                f"@{WARDEN_HANDLE} incident on {inv_id} contained: {target_handle} "
+                f"@{self.warden_handle} incident on {inv_id} contained: {target_handle} "
                 f"ejected, payment frozen. Awaiting human sign-off before any release."
             ),
-            mentions=[WARDEN_HANDLE],
+            mentions=[self.warden_handle],
         )
 
 

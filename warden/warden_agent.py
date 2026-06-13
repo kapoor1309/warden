@@ -18,10 +18,9 @@ import re
 from band import Agent
 from band.core.simple_adapter import SimpleAdapter
 
+from agents.identity import handle_for
 from warden import invariants
 from warden.sources import Sources
-
-INVESTIGATOR_HANDLE = (os.getenv("INVESTIGATOR_HANDLE") or "@parshiv.kapoor/investigator").lstrip("@")
 
 _JSON_FENCE = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL)
 
@@ -58,6 +57,7 @@ class WardenAdapter(SimpleAdapter):
     def __init__(self):
         super().__init__()
         self.sources = Sources.from_dir()
+        self.investigator_handle = handle_for("INVESTIGATOR")
 
     async def on_message(self, msg, tools, history, participants_msg,
                          contacts_msg, *, is_session_bootstrap, room_id):
@@ -91,11 +91,11 @@ class WardenAdapter(SimpleAdapter):
         )
         await tools.send_message(
             content=(
-                f"@{INVESTIGATOR_HANDLE} possible compromise on invoice {inv_id} "
+                f"@{self.investigator_handle} possible compromise on invoice {inv_id} "
                 f"at stage '{stage}'. Rule violations: {', '.join(violations)}. "
                 f"Please trace the chain and confirm."
             ),
-            mentions=[INVESTIGATOR_HANDLE],
+            mentions=[self.investigator_handle],
         )
 
 
