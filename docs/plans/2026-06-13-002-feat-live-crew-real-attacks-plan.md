@@ -1,6 +1,6 @@
 ---
 title: "feat: complete the live crew + real third-party attacks + per-dev config"
-status: active
+status: completed
 date: 2026-06-13
 type: feat
 depth: deep
