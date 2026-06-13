@@ -57,4 +57,9 @@ def release_decision(signoff, sources):
     on_file = sources.vendor_account(vid)
     if on_file is None or payee != on_file:
         return False, f"FROZEN: payee {payee!r} != on-file {on_file!r}"
+    po = sources.purchase_order(inv)
+    if po is None or po.get("vendor_id") != vid:
+        return False, "FROZEN: invoice/vendor mismatch"
+    if amount != po.get("amount"):
+        return False, "FROZEN: amount does not match purchase order"
     return True, f"RELEASED: {amount} to {payee} (signed + re-derived)"

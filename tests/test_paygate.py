@@ -51,6 +51,19 @@ def test_signed_attacker_account_still_freezes_on_rederive(sources):
     assert not released and "on-file" in reason
 
 
+def test_signed_wrong_vendor_for_invoice_freezes(sources):
+    # INV-1042 belongs to V-77, so a signed release to V-88's on-file account is still invalid.
+    so = _signoff(vendor_id="V-88", payee="ACC-002")
+    released, reason = paygate.release_decision(so, sources)
+    assert not released and "invoice/vendor" in reason
+
+
+def test_signed_wrong_amount_freezes(sources):
+    so = _signoff(amount=4999)
+    released, reason = paygate.release_decision(so, sources)
+    assert not released and "amount" in reason
+
+
 def test_unapproved_chain_freezes(sources):
     so = _signoff(stages=["intake", "matched"])
     released, reason = paygate.release_decision(so, sources)

@@ -28,6 +28,7 @@ ALLOWED_ACTIONS = {
 STAGE_OUT_OF_ORDER     = "stage_skipped_or_out_of_order"
 PAYEE_NOT_ON_FILE      = "payee_not_on_file"
 AMOUNT_MISMATCH        = "amount_mismatch"
+PO_VENDOR_MISMATCH     = "po_vendor_mismatch"
 INSTRUCTION_FROM_DOC   = "instruction_from_document"
 OUT_OF_ROLE            = "out_of_role"
 MALFORMED_RECORD       = "malformed_provenance_record"
@@ -78,6 +79,8 @@ def check(record, sources):
     po = sources.purchase_order(invoice_id)
     if po is None or amount != po.get("amount"):
         violations.append(AMOUNT_MISMATCH)
+    if po is None or po.get("vendor_id") != vendor_id:
+        violations.append(PO_VENDOR_MISMATCH)
 
     # Rule 4 — actions happen for the right reason, never because a document said so.
     if action_cause == "ingested_text":

@@ -71,6 +71,13 @@ def test_amount_mismatch_is_caught(sources):
     assert inv.AMOUNT_MISMATCH in inv.check(r, sources)
 
 
+def test_purchase_order_must_belong_to_vendor(sources):
+    r = clean_record()
+    r["vendor_id"] = "V-88"  # INV-1042 belongs to V-77, not V-88.
+    r["facts"]["payee_account"]["value"] = "ACC-002"
+    assert inv.PO_VENDOR_MISMATCH in inv.check(r, sources)
+
+
 def test_instruction_from_document_is_caught(sources):
     r = clean_record()
     r["action_cause"] = "ingested_text"  # acted because the document said to
