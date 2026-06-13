@@ -17,5 +17,10 @@ langgraph
 crewai
 anthropic
 
+# Attack benchmarks (real, third-party — CLAUDE.md rule). agentdojo provides the
+# Banking-suite injection goals pulled live in attacks/benchmarks.py; InjecAgent
+# strings are vendored under attacks/payloads/ with attribution.
+agentdojo
+
 # Tests (offline)
 pytest

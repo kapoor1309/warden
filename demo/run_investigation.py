@@ -23,16 +23,32 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from band_client import BandClient
-from attacks.build_invoice import POISONED_INVOICE
+from agents.identity import handle_for
+from attacks import build_invoice, benchmarks, judge_input
 from agents.intake import build_intake
+from agents.matcher import build_matcher
+from agents.approver import build_approver
 from agents.investigator import build_investigator
 from warden.warden_agent import build_warden
 from warden.enforcer_agent import build_enforcer
 
 WARDEN_KEY = os.getenv("WARDEN_API_KEY")
 INTAKE_ID = os.getenv("INTAKE_AGENT_ID")
-INTAKE_HANDLE = (os.getenv("INTAKE_HANDLE") or "").lstrip("@")
+INTAKE_HANDLE = handle_for("INTAKE")
 PARTICIPANTS = ["INTAKE", "MATCHER", "APPROVER", "INVESTIGATOR", "ENFORCER"]
+
+
+def _select_attack():
+    """Pick the attack. Default = a REAL AgentDojo banking injection. The graded
+    attack is never self-authored (CLAUDE.md). Flags: --injecagent, --judge
+    "<text>", --dev-standin (self-authored, not for grading)."""
+    if "--dev-standin" in sys.argv:
+        return build_invoice.dev_standin(), "DEV STAND-IN (self-authored, not for grading)"
+    if "--judge" in sys.argv:
+        return build_invoice.embed(judge_input.get_judge_attack()), "judge-supplied"
+    src = "injecagent" if "--injecagent" in sys.argv else "agentdojo-banking"
+    p = benchmarks.random_payload(src)
+    return build_invoice.embed(p["text"]), f"{p['source']} [{p['ref']}]"
 
 
 async def main():
@@ -47,17 +63,20 @@ async def main():
 
     warden = build_warden()
     intake = build_intake()
+    matcher = build_matcher()
+    approver = build_approver()
     investigator = build_investigator()
     enforcer = build_enforcer()
-    agents = [warden, intake, investigator, enforcer]
+    agents = [warden, intake, matcher, approver, investigator, enforcer]
     tasks = [asyncio.create_task(a.run()) for a in agents]
-    print("Warden + Intake + Investigator + Enforcer connecting...")
-    await asyncio.sleep(10)
+    print("Full crew connecting...")
+    await asyncio.sleep(12)
 
-    print("\n>>> Dropping a POISONED invoice into the room (mentioning Intake)\n")
+    attack_doc, attack_src = _select_attack()
+    print(f"\n>>> Dropping a POISONED invoice (attack source: {attack_src})\n")
     warden_rest.send_message(
         chat_id,
-        f"@{INTAKE_HANDLE}\n{POISONED_INVOICE}",
+        f"@{INTAKE_HANDLE}\n{attack_doc}",
         mentions=[{"id": INTAKE_ID, "name": "Invoice Intake", "handle": INTAKE_HANDLE}],
     )
 
