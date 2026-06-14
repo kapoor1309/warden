@@ -1,0 +1,26 @@
+# Render Blueprint for the Warden Console dashboard.
+# Connect this repo in Render (New + → Blueprint); Render reads this file and
+# auto-redeploys on every push to main. Uses the SLIM web deps, not the heavy
+# agent stack, so builds are fast.
+services:
+  - type: web
+    name: warden-console
+    runtime: python
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements-web.txt
+    startCommand: uvicorn web.app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      # Auto-generated random secret for the pay-gate HMAC.
+      - key: WARDEN_SIGNING_SECRET
+        generateValue: true
+      # Set this in the Render dashboard so the real LLM Intake works on real
+      # invoices. Without it the console still runs (regex parser fallback).
+      - key: AIML_API_KEY
+        sync: false
+      - key: AIML_BASE_URL
+        value: https://api.aimlapi.com/v1
+      - key: AIML_MODEL
+        value: gpt-4o-mini
