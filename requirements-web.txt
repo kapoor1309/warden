@@ -1,0 +1,9 @@
+# Slim deps for deploying the Warden Console dashboard (web/app.py).
+# The dashboard only needs FastAPI + the lightweight warden modules — NOT the
+# full agent stack (band-sdk/langgraph/crewai), so deploys stay fast and reliable.
+fastapi
+uvicorn[standard]
+python-multipart
+pdfplumber
+python-dotenv
+httpx

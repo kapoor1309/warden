@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Warden — Agentic Payment Integrity</title>
+<style>
+  :root{
+    --bg:#0a0d14; --panel:#111620; --panel2:#0e131c; --border:#1f2733;
+    --text:#e7ecf3; --muted:#8893a6; --faint:#5b6577;
+    --green:#34d399; --red:#f87171; --amber:#fbbf24; --accent:#6366f1; --cyan:#22d3ee;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.5}
+  a{color:var(--accent);text-decoration:none}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  header{display:flex;align-items:center;justify-content:space-between;
+    padding:18px 28px;border-bottom:1px solid var(--border);background:var(--panel2)}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand .mark{font-weight:700;letter-spacing:.28em;font-size:18px}
+  .brand .sub{color:var(--muted);font-size:13px;border-left:1px solid var(--border);padding-left:14px}
+  .tag{font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:999px;
+    padding:5px 12px;letter-spacing:.04em}
+  .wrap{max-width:1240px;margin:0 auto;padding:24px 28px 60px}
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+  .stat .v{font-size:24px;font-weight:700}
+  .stat .l{color:var(--text);font-size:13px;margin-top:2px}
+  .stat .s{color:var(--faint);font-size:11px;margin-top:6px}
+  /* layout */
+  .grid{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius)}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);
+    margin:0;padding:16px 18px;border-bottom:1px solid var(--border);font-weight:600}
+  .card .body{padding:18px}
+  /* input */
+  .samples{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+  .samples button{background:var(--panel2);color:var(--text);border:1px solid var(--border);
+    border-radius:8px;padding:9px 10px;font-size:12.5px;cursor:pointer;text-align:left}
+  .samples button:hover{border-color:var(--accent)}
+  textarea{width:100%;height:230px;background:#070a10;color:var(--text);border:1px solid var(--border);
+    border-radius:8px;padding:12px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;resize:vertical}
+  .row{display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:12px}
+  .toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px}
+  .upload{margin-top:10px;color:var(--muted);font-size:12.5px}
+  .upload input{font-size:12px;color:var(--muted)}
+  .run{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px 20px;
+    font-weight:600;font-size:13.5px;cursor:pointer}
+  .run:hover{filter:brightness(1.08)} .run:disabled{opacity:.5;cursor:default}
+  /* pipeline */
+  .verdict{border-radius:var(--radius);padding:18px 20px;margin-bottom:16px;border:1px solid var(--border);
+    display:none}
+  .verdict.show{display:block}
+  .verdict .h{font-size:18px;font-weight:700}
+  .verdict .m{color:var(--muted);margin-top:4px;font-size:13px}
+  .verdict.ok{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.35)}
+  .verdict.ok .h{color:var(--green)}
+  .verdict.bad{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.35)}
+  .verdict.bad .h{color:var(--red)}
+  .verdict.warn{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.35)}
+  .verdict.warn .h{color:var(--amber)}
+  .stage{background:var(--panel);border:1px solid var(--border);border-left-width:3px;
+    border-radius:8px;padding:14px 16px;margin-bottom:12px;opacity:0;transform:translateY(6px);
+    transition:opacity .3s,transform .3s}
+  .stage.in{opacity:1;transform:none}
+  .stage.ok{border-left-color:var(--green)} .stage.error{border-left-color:var(--red)}
+  .stage .top{display:flex;align-items:center;justify-content:space-between}
+  .stage .who{font-weight:600;font-size:14px}
+  .stage .title{color:var(--muted);font-size:13px;margin-top:2px}
+  .pill{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;
+    padding:4px 10px;border-radius:999px;border:1px solid}
+  .pill.ok{color:var(--green);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.08)}
+  .pill.error{color:var(--red);border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.08)}
+  .lines{margin-top:10px;color:var(--text);font-size:13px}
+  .lines div{margin-top:3px;color:var(--muted)}
+  .rules{margin-top:12px;display:grid;gap:6px}
+  .rule{display:flex;align-items:center;gap:10px;font-size:12.5px}
+  .rule .dot{width:7px;height:7px;border-radius:50%;flex:none}
+  .rule.pass .dot{background:var(--green)} .rule.fail .dot{background:var(--red)}
+  .rule .lbl{color:var(--text)} .rule.fail .lbl{color:var(--red);font-weight:600}
+  .rule .st{margin-left:auto;color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  .rule.fail .st{color:var(--red)}
+  details{margin-top:10px} summary{cursor:pointer;color:var(--faint);font-size:11.5px;
+    text-transform:uppercase;letter-spacing:.06em}
+  pre{background:#070a10;border:1px solid var(--border);border-radius:8px;padding:12px;overflow:auto;
+    font-size:11.5px;color:#b9c2d4;margin-top:8px}
+  .empty{color:var(--faint);text-align:center;padding:60px 0;font-size:13px}
+  footer{color:var(--faint);font-size:12px;margin-top:28px;padding-top:18px;border-top:1px solid var(--border)}
+  footer a{color:var(--muted)} footer .note{margin-top:6px}
+  @media(max-width:920px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <span class="mark">WARDEN</span>
+    <span class="sub">Agentic Payment Integrity</span>
+  </div>
+  <span class="tag">Track 3 · Regulated &amp; High-Stakes · deterministic core</span>
+</header>
+
+<div class="wrap">
+  <div class="stats" id="stats"></div>
+
+  <div class="grid">
+    <aside class="card">
+      <h2>Invoice input</h2>
+      <div class="body">
+        <div class="samples">
+          <button data-k="realistic_clean">Real invoice · legitimate</button>
+          <button data-k="realistic_poisoned">Real invoice · tampered</button>
+          <button data-k="clean">Simple · clean</button>
+          <button data-k="poisoned">Simple · poisoned</button>
+        </div>
+        <textarea id="doc" placeholder="Paste an invoice, load a sample, or upload a PDF…"></textarea>
+        <div class="upload">Upload a real invoice (PDF): <input type="file" id="file" accept=".pdf,.txt"/></div>
+        <div class="row">
+          <label class="toggle"><input type="checkbox" id="llm"/> Real LLM Intake (AI/ML)</label>
+          <button class="run" id="run">Run pipeline</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="card">
+      <h2>Pipeline</h2>
+      <div class="body">
+        <div class="verdict" id="verdict"></div>
+        <div id="timeline"><div class="empty">Load or paste an invoice, then run the pipeline to see every stage.</div></div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <div>Sources: <span id="sources"></span></div>
+    <div class="note">The company's vendor records are simulated (as any demo would be). The invoices are
+      realistic and the attacks are real / third-party. Warden's decision is deterministic — no LLM in the gate.</div>
+  </footer>
+</div>
+
+<script>
+let META = {rule_labels:{}, samples:{}, stats:[], sources:[]};
+const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function init(){
+  META = await (await fetch('/api/meta')).json();
+  // stats
+  $('#stats').innerHTML = META.stats.map(s =>
+    `<div class="stat"><div class="v">${s.value}</div><div class="l">${s.label}</div><div class="s">${s.source}</div></div>`).join('');
+  // sources
+  $('#sources').innerHTML = META.sources.map(s => `<a href="${s.url}" target="_blank">${s.name}</a>`).join(' · ');
+  // llm default
+  $('#llm').checked = !!META.llm_available;
+  // sample buttons
+  document.querySelectorAll('.samples button').forEach(b=>{
+    b.onclick = ()=>{ $('#doc').value = META.samples[b.dataset.k] || ''; };
+  });
+  $('#doc').value = META.samples.realistic_clean || '';
+}
+
+$('#file').addEventListener('change', async e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const fd = new FormData(); fd.append('file', f);
+  const r = await (await fetch('/api/upload', {method:'POST', body:fd})).json();
+  $('#doc').value = r.document || '';
+});
+
+function ruleRow(code, violated){
+  const cls = violated ? 'fail' : 'pass';
+  const st = violated ? 'Violated' : 'OK';
+  return `<div class="rule ${cls}"><span class="dot"></span><span class="lbl">${META.rule_labels[code]}</span><span class="st">${st}</span></div>`;
+}
+
+function stageCard(step){
+  const state = step.state === 'error' ? 'error' : 'ok';
+  const pill = step.state === 'error' ? '<span class="pill error">Flagged</span>' : '<span class="pill ok">Pass</span>';
+  let rules = '';
+  if(step.violations !== null && step.violations !== undefined){
+    rules = '<div class="rules">' + Object.keys(META.rule_labels)
+      .map(c => ruleRow(c, step.violations.includes(c))).join('') + '</div>';
+  }
+  let rec = '';
+  if(step.record){
+    rec = `<details><summary>Under the hood — the record</summary><pre>${JSON.stringify(step.record, null, 2)}</pre></details>`;
+  }
+  const lines = step.lines.map((l,i)=>`<div${i===0?' style="color:var(--text)"':''}>${l}</div>`).join('');
+  return `<div class="stage ${state}"><div class="top"><div><div class="who">${step.agent}</div>`+
+         `<div class="title">${step.title}</div></div>${pill}</div>`+
+         `<div class="lines">${lines}</div>${rules}${rec}</div>`;
+}
+
+async function run(){
+  const btn = $('#run'); btn.disabled = true; btn.textContent = 'Running…';
+  $('#verdict').className = 'verdict';
+  $('#timeline').innerHTML = '';
+  try{
+    const res = await (await fetch('/api/run', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({document: $('#doc').value, use_llm: $('#llm').checked})})).json();
+    for(const step of res.steps){
+      const el = document.createElement('div');
+      el.innerHTML = stageCard(step);
+      const node = el.firstChild;
+      $('#timeline').appendChild(node);
+      await sleep(60); node.classList.add('in');
+      await sleep(420);
+    }
+    const o = res.outcome;
+    const v = $('#verdict');
+    const map = {RELEASED:['ok','Payment released'], BLOCKED:['bad','Payment blocked'],
+                 FROZEN:['bad','Payment frozen'], REJECTED:['warn','Invoice rejected']};
+    const [cls,h] = map[o.status] || ['warn', o.status];
+    v.className = 'verdict show ' + cls;
+    v.innerHTML = `<div class="h">${h}</div><div class="m">${o.message}</div>`;
+  }catch(e){
+    $('#timeline').innerHTML = `<div class="empty">Error: ${e}</div>`;
+  }
+  btn.disabled = false; btn.textContent = 'Run pipeline';
+}
+
+$('#run').addEventListener('click', run);
+init();
+</script>
+</body>
+</html>

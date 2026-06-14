@@ -1,5 +1,6 @@
 {
   "INV-1042": { "vendor_id": "V-77", "amount": 5000, "po_number": "PO-5501" },
   "INV-2099": { "vendor_id": "V-88", "amount": 48000, "po_number": "PO-6620" },
-  "INV-3300": { "vendor_id": "V-91", "amount": 1200, "po_number": "PO-7012" }
+  "INV-3300": { "vendor_id": "V-91", "amount": 1200, "po_number": "PO-7012" },
+  "INV-2026-04871": { "vendor_id": "V-204", "amount": 5013, "po_number": "PO-55831" }
 }
