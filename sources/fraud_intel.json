@@ -1,0 +1,25 @@
+{
+  "_about": "Mock threat-intelligence watchlist of known fraud / money-mule accounts. In production this would be a live feed (bank-consortium data, AML lists). Keys are account numbers or IBANs; lookups are whitespace- and case-insensitive.",
+  "accounts": {
+    "ACC-99999": {
+      "risk": "high",
+      "reason": "Money-mule account repeatedly used in business-email-compromise payment redirection.",
+      "source": "Internal fraud watchlist"
+    },
+    "99887766": {
+      "risk": "high",
+      "reason": "Newly-opened account tied to a vendor-impersonation 'bank details changed' scam cluster.",
+      "source": "Internal fraud watchlist"
+    },
+    "GB94 REVO 0099 6912 3456 78": {
+      "risk": "high",
+      "reason": "IBAN reported in invoice-redirection fraud.",
+      "source": "Cross-bank mule-account report"
+    },
+    "US133000000121212121212": {
+      "risk": "high",
+      "reason": "Attacker payee account drawn from the AgentDojo banking attack corpus.",
+      "source": "AgentDojo banking suite (third-party benchmark)"
+    }
+  }
+}

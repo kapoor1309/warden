@@ -14,6 +14,7 @@ import httpx
 
 from warden import invariants, paygate
 from warden import agents as crew
+from warden import threat_intel
 from warden.sources import Sources
 
 sources = Sources.from_dir()
@@ -207,10 +208,21 @@ def run(document: str, use_llm: bool = False) -> dict:
                        violations=v, state=("error" if v else "complete")))
 
     if v:
+        bad_payee = invariants.PAYEE_NOT_ON_FILE in v
         steps.append(_step("Investigator", "🔎", "Investigator traced the chain",
-                           lines=[f"Bad value entered at the intake stage: payee {fields['payee_account']} "
-                                  f"≠ on-file {on_file}. Classic business-email-compromise.",
-                                  "Verdict: COMPROMISED — Intake was hijacked by the poisoned invoice."]))
+                           lines=([f"Bad value entered at the intake stage: payee {fields['payee_account']} "
+                                   f"≠ on-file {on_file}. Classic business-email-compromise.",
+                                   "Unfamiliar payee account — recruiting a Threat-Intel specialist to screen it."]
+                                  if bad_payee else
+                                  [f"Rule violation(s): {', '.join(v)}.",
+                                   "Verdict: COMPROMISED — the handoff broke the behaviour contract."])))
+        if bad_payee:
+            finding = threat_intel.check_account(fields["payee_account"])
+            steps.append(_step("Threat-Intel", "🛰️", "Threat-Intel specialist (recruited into the room)",
+                               lines=["Pulled in live by the Investigator over Band "
+                                      "(lookup_peers → add_participant).",
+                                      threat_intel.narrate(finding, use_llm=use_llm)],
+                               state=("error" if finding["known_fraud"] else "complete")))
         steps.append(_step("Enforcer", "🚫", "Enforcer contained the incident",
                            lines=["Ejected the compromised Intake agent.",
                                   "Froze the payment (no sign-off was ever issued).",
