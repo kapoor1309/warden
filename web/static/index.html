@@ -4,131 +4,181 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Warden — Agentic Payment Integrity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0a0d14; --panel:#111620; --panel2:#0e131c; --border:#1f2733;
-    --text:#e7ecf3; --muted:#8893a6; --faint:#5b6577;
-    --green:#34d399; --red:#f87171; --amber:#fbbf24; --accent:#6366f1; --cyan:#22d3ee;
-    --radius:12px;
+    --bg:#070a12; --bg2:#0a0e18; --panel:#0f1420; --panel2:#0c111b; --border:#1b2433;
+    --border2:#252f41; --text:#eef2f8; --muted:#93a0b8; --faint:#5d6982;
+    --green:#34d399; --red:#fb7185; --amber:#fbbf24; --accent:#7c8aff; --accent2:#22d3ee;
+    --glow:rgba(124,138,255,.14);
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);
-    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.5}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.55;
+    background-image:radial-gradient(900px 500px at 12% -8%,var(--glow),transparent 60%),
+                     radial-gradient(800px 500px at 100% 0%,rgba(34,211,238,.07),transparent 55%);
+    background-attachment:fixed;-webkit-font-smoothing:antialiased}
+  .mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
   a{color:var(--accent);text-decoration:none}
-  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  /* header */
   header{display:flex;align-items:center;justify-content:space-between;
-    padding:18px 28px;border-bottom:1px solid var(--border);background:var(--panel2)}
-  .brand{display:flex;align-items:center;gap:14px}
-  .brand .mark{font-weight:700;letter-spacing:.28em;font-size:18px}
-  .brand .sub{color:var(--muted);font-size:13px;border-left:1px solid var(--border);padding-left:14px}
-  .tag{font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:999px;
-    padding:5px 12px;letter-spacing:.04em}
-  .wrap{max-width:1240px;margin:0 auto;padding:24px 28px 60px}
+    padding:16px 30px;border-bottom:1px solid var(--border);
+    background:rgba(8,11,18,.7);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+  .brand{display:flex;align-items:center;gap:13px}
+  .logo{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--accent),#5563e6);box-shadow:0 4px 18px rgba(124,138,255,.4)}
+  .brand .mark{font-weight:800;letter-spacing:.26em;font-size:17px}
+  .brand .sub{color:var(--muted);font-size:12.5px;border-left:1px solid var(--border2);padding-left:13px}
+  .hgroup{display:flex;align-items:center;gap:10px}
+  .chip{font-size:11px;color:var(--muted);border:1px solid var(--border2);border-radius:999px;padding:5px 12px;letter-spacing:.03em}
+  .live{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--green);
+    border:1px solid rgba(52,211,153,.35);background:rgba(52,211,153,.07);border-radius:999px;padding:5px 12px}
+  .live .ring{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(52,211,153,.6);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.5)}70%{box-shadow:0 0 0 7px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+  .wrap{max-width:1280px;margin:0 auto;padding:26px 30px 70px}
+  .lede{margin:0 0 22px;max-width:760px}
+  .lede h1{font-size:22px;font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
+  .lede p{margin:0;color:var(--muted);font-size:14px}
   /* stats */
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
-  .stat{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
-  .stat .v{font-size:24px;font-weight:700}
-  .stat .l{color:var(--text);font-size:13px;margin-top:2px}
-  .stat .s{color:var(--faint);font-size:11px;margin-top:6px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+  .stat{position:relative;background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--border);border-radius:14px;padding:18px 18px 16px;overflow:hidden}
+  .stat::before{content:"";position:absolute;left:0;top:0;height:100%;width:3px;
+    background:linear-gradient(var(--accent),var(--accent2))}
+  .stat .v{font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .stat .l{font-size:13px;margin-top:3px}
+  .stat .s{color:var(--faint);font-size:11px;margin-top:8px}
   /* layout */
-  .grid{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius)}
-  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);
-    margin:0;padding:16px 18px;border-bottom:1px solid var(--border);font-weight:600}
-  .card .body{padding:18px}
+  .grid{display:grid;grid-template-columns:390px 1fr;gap:22px;align-items:start}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--border);
+    border-radius:16px;overflow:hidden}
+  .card>h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);
+    margin:0;padding:16px 20px;border-bottom:1px solid var(--border);font-weight:600;
+    display:flex;align-items:center;gap:9px}
+  .card .body{padding:20px}
+  aside{position:sticky;top:84px}
   /* input */
-  .samples{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-  .samples button{background:var(--panel2);color:var(--text);border:1px solid var(--border);
-    border-radius:8px;padding:9px 10px;font-size:12.5px;cursor:pointer;text-align:left}
-  .samples button:hover{border-color:var(--accent)}
-  textarea{width:100%;height:230px;background:#070a10;color:var(--text);border:1px solid var(--border);
-    border-radius:8px;padding:12px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;resize:vertical}
-  .row{display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:12px}
-  .toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px}
-  .upload{margin-top:10px;color:var(--muted);font-size:12.5px}
-  .upload input{font-size:12px;color:var(--muted)}
-  .run{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px 20px;
-    font-weight:600;font-size:13.5px;cursor:pointer}
-  .run:hover{filter:brightness(1.08)} .run:disabled{opacity:.5;cursor:default}
-  /* pipeline */
-  .verdict{border-radius:var(--radius);padding:18px 20px;margin-bottom:16px;border:1px solid var(--border);
-    display:none}
-  .verdict.show{display:block}
-  .verdict .h{font-size:18px;font-weight:700}
-  .verdict .m{color:var(--muted);margin-top:4px;font-size:13px}
-  .verdict.ok{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.35)}
-  .verdict.ok .h{color:var(--green)}
-  .verdict.bad{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.35)}
-  .verdict.bad .h{color:var(--red)}
-  .verdict.warn{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.35)}
-  .verdict.warn .h{color:var(--amber)}
-  .stage{background:var(--panel);border:1px solid var(--border);border-left-width:3px;
-    border-radius:8px;padding:14px 16px;margin-bottom:12px;opacity:0;transform:translateY(6px);
-    transition:opacity .3s,transform .3s}
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+  .seg button{background:var(--panel2);color:var(--text);border:1px solid var(--border2);
+    border-radius:10px;padding:11px 12px;font-size:12.5px;cursor:pointer;text-align:left;transition:.15s;font-weight:500}
+  .seg button:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .seg button .t{display:block;font-size:11px;color:var(--faint);font-weight:500;margin-top:2px}
+  textarea{width:100%;height:220px;background:#060912;color:var(--text);border:1px solid var(--border2);
+    border-radius:12px;padding:13px;font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;font-size:12px;resize:vertical}
+  textarea:focus{outline:none;border-color:var(--accent)}
+  .upload{margin-top:11px;color:var(--muted);font-size:12px}
+  .upload input{font-size:11.5px;color:var(--muted);margin-top:5px}
+  .row{display:flex;align-items:center;justify-content:space-between;margin-top:16px;gap:12px}
+  .toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px;cursor:pointer}
+  .run{background:linear-gradient(135deg,var(--accent),#5563e6);color:#fff;border:none;border-radius:11px;
+    padding:12px 22px;font-weight:600;font-size:13.5px;cursor:pointer;box-shadow:0 6px 20px rgba(124,138,255,.32);transition:.15s}
+  .run:hover{filter:brightness(1.08);transform:translateY(-1px)} .run:disabled{opacity:.55;cursor:default;transform:none}
+  /* verdict */
+  .verdict{display:none;align-items:center;gap:14px;border-radius:14px;padding:18px 20px;margin-bottom:20px;border:1px solid var(--border2)}
+  .verdict.show{display:flex;animation:rise .4s}
+  .verdict .vico{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;flex:none}
+  .verdict .h{font-size:18px;font-weight:700} .verdict .m{color:var(--muted);font-size:13px;margin-top:2px}
+  .verdict.ok{background:linear-gradient(90deg,rgba(52,211,153,.12),transparent);border-color:rgba(52,211,153,.4)}
+  .verdict.ok .vico{background:rgba(52,211,153,.16);color:var(--green)} .verdict.ok .h{color:var(--green)}
+  .verdict.bad{background:linear-gradient(90deg,rgba(251,113,133,.12),transparent);border-color:rgba(251,113,133,.4)}
+  .verdict.bad .vico{background:rgba(251,113,133,.16);color:var(--red)} .verdict.bad .h{color:var(--red)}
+  .verdict.warn{background:linear-gradient(90deg,rgba(251,191,36,.12),transparent);border-color:rgba(251,191,36,.4)}
+  .verdict.warn .vico{background:rgba(251,191,36,.16);color:var(--amber)} .verdict.warn .h{color:var(--amber)}
+  /* timeline */
+  .timeline{position:relative;padding-left:8px}
+  .timeline::before{content:"";position:absolute;left:25px;top:14px;bottom:14px;width:2px;
+    background:linear-gradient(var(--border2),var(--border) 80%,transparent)}
+  .stage{position:relative;display:flex;gap:18px;padding:0 0 16px 0;opacity:0;transform:translateY(8px);
+    transition:opacity .35s,transform .35s}
   .stage.in{opacity:1;transform:none}
-  .stage.ok{border-left-color:var(--green)} .stage.error{border-left-color:var(--red)}
-  .stage .top{display:flex;align-items:center;justify-content:space-between}
-  .stage .who{font-weight:600;font-size:14px}
-  .stage .title{color:var(--muted);font-size:13px;margin-top:2px}
-  .pill{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;
-    padding:4px 10px;border-radius:999px;border:1px solid}
+  .node{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;z-index:2;
+    font-size:11px;font-weight:700;letter-spacing:.02em;color:#fff;border:3px solid var(--bg);
+    background:var(--c,#444);box-shadow:0 0 0 1px var(--border2)}
+  .scard{flex:1;background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--c,#444);
+    border-radius:12px;padding:14px 16px}
+  .scard.error{border-left-color:var(--red)}
+  .stop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .who{font-weight:600;font-size:14px} .stitle{color:var(--muted);font-size:12.5px;margin-top:1px}
+  .pill{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid;white-space:nowrap}
   .pill.ok{color:var(--green);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.08)}
-  .pill.error{color:var(--red);border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.08)}
-  .lines{margin-top:10px;color:var(--text);font-size:13px}
-  .lines div{margin-top:3px;color:var(--muted)}
-  .rules{margin-top:12px;display:grid;gap:6px}
+  .pill.error{color:var(--red);border-color:rgba(251,113,133,.4);background:rgba(251,113,133,.08)}
+  .lines{margin-top:9px;font-size:13px}.lines div{margin-top:3px;color:var(--muted)}.lines div:first-child{color:var(--text)}
+  .rules{margin-top:12px;display:grid;gap:7px}
   .rule{display:flex;align-items:center;gap:10px;font-size:12.5px}
-  .rule .dot{width:7px;height:7px;border-radius:50%;flex:none}
-  .rule.pass .dot{background:var(--green)} .rule.fail .dot{background:var(--red)}
+  .rule .dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .rule.pass .dot{background:var(--green);box-shadow:0 0 8px rgba(52,211,153,.5)}
+  .rule.fail .dot{background:var(--red);box-shadow:0 0 8px rgba(251,113,133,.6)}
   .rule .lbl{color:var(--text)} .rule.fail .lbl{color:var(--red);font-weight:600}
-  .rule .st{margin-left:auto;color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  .rule .st{margin-left:auto;color:var(--faint);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}
   .rule.fail .st{color:var(--red)}
-  details{margin-top:10px} summary{cursor:pointer;color:var(--faint);font-size:11.5px;
-    text-transform:uppercase;letter-spacing:.06em}
-  pre{background:#070a10;border:1px solid var(--border);border-radius:8px;padding:12px;overflow:auto;
-    font-size:11.5px;color:#b9c2d4;margin-top:8px}
-  .empty{color:var(--faint);text-align:center;padding:60px 0;font-size:13px}
-  footer{color:var(--faint);font-size:12px;margin-top:28px;padding-top:18px;border-top:1px solid var(--border)}
-  footer a{color:var(--muted)} footer .note{margin-top:6px}
-  @media(max-width:920px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+  details{margin-top:11px}summary{cursor:pointer;color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:.07em}
+  summary:hover{color:var(--muted)}
+  pre{background:#060912;border:1px solid var(--border2);border-radius:10px;padding:13px;overflow:auto;
+    font-size:11.5px;color:#aeb8cc;margin-top:9px;font-family:'JetBrains Mono',monospace}
+  .empty{color:var(--faint);text-align:center;padding:70px 20px;font-size:13px}
+  .empty svg{opacity:.4;margin-bottom:12px}
+  footer{color:var(--faint);font-size:12px;margin-top:30px;padding-top:18px;border-top:1px solid var(--border)}
+  footer a{color:var(--muted)} footer .note{margin-top:7px;max-width:880px}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media(max-width:940px){.grid{grid-template-columns:1fr}aside{position:static}.stats{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 <header>
   <div class="brand">
+    <div class="logo">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z" fill="#fff" fill-opacity=".95"/><path d="M9 12l2 2 4-4" stroke="#5563e6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
     <span class="mark">WARDEN</span>
     <span class="sub">Agentic Payment Integrity</span>
   </div>
-  <span class="tag">Track 3 · Regulated &amp; High-Stakes · deterministic core</span>
+  <div class="hgroup">
+    <span class="chip">Track 3 · Regulated &amp; High-Stakes</span>
+    <span class="live"><span class="ring"></span> Deterministic core</span>
+  </div>
 </header>
 
 <div class="wrap">
+  <div class="lede">
+    <h1>Catch the hijacked agent before the money moves.</h1>
+    <p>Everyone else builds agents that do a job. Warden is the agent that watches the other agents —
+       it spots a teammate hijacked by a poisoned invoice, traces it, and ejects it before a payment is released.</p>
+  </div>
+
   <div class="stats" id="stats"></div>
 
   <div class="grid">
     <aside class="card">
       <h2>Invoice input</h2>
       <div class="body">
-        <div class="samples">
-          <button data-k="realistic_clean">Real invoice · legitimate</button>
-          <button data-k="realistic_poisoned">Real invoice · tampered</button>
-          <button data-k="clean">Simple · clean</button>
-          <button data-k="poisoned">Simple · poisoned</button>
+        <div class="seg">
+          <button data-k="realistic_clean">Real invoice<span class="t">legitimate</span></button>
+          <button data-k="realistic_poisoned">Real invoice<span class="t">tampered (BEC)</span></button>
+          <button data-k="clean">Simple<span class="t">clean</span></button>
+          <button data-k="poisoned">Simple<span class="t">poisoned</span></button>
         </div>
         <textarea id="doc" placeholder="Paste an invoice, load a sample, or upload a PDF…"></textarea>
-        <div class="upload">Upload a real invoice (PDF): <input type="file" id="file" accept=".pdf,.txt"/></div>
+        <div class="upload">Upload a real invoice (PDF):<br><input type="file" id="file" accept=".pdf,.txt"/></div>
         <div class="row">
-          <label class="toggle"><input type="checkbox" id="llm"/> Real LLM Intake (AI/ML)</label>
+          <label class="toggle"><input type="checkbox" id="llm"/> Real LLM Intake</label>
           <button class="run" id="run">Run pipeline</button>
         </div>
       </div>
     </aside>
 
     <section class="card">
-      <h2>Pipeline</h2>
+      <h2>Pipeline execution</h2>
       <div class="body">
         <div class="verdict" id="verdict"></div>
-        <div id="timeline"><div class="empty">Load or paste an invoice, then run the pipeline to see every stage.</div></div>
+        <div id="timeline">
+          <div class="empty">
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z" stroke="currentColor" stroke-width="1.5"/></svg>
+            <div>Load or paste an invoice, then run the pipeline to watch every stage execute.</div>
+          </div>
+        </div>
       </div>
     </section>
   </div>
@@ -144,24 +194,28 @@
 let META = {rule_labels:{}, samples:{}, stats:[], sources:[]};
 const $ = s => document.querySelector(s);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const AGENTS = {
+  'Intake':{ini:'IN',c:'#7c8aff'}, 'Warden':{ini:'WD',c:'#22d3ee'}, 'Matcher':{ini:'MA',c:'#38bdf8'},
+  'Approver':{ini:'AP',c:'#34d399'}, 'Investigator':{ini:'IV',c:'#a78bfa'},
+  'Threat-Intel':{ini:'TI',c:'#fb7185'}, 'Enforcer':{ini:'EN',c:'#f59e0b'}
+};
+const ICONS = {
+  ok:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  bad:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 16H3L12 3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v4M12 17v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  warn:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v5M12 16v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+};
 
 async function init(){
   META = await (await fetch('/api/meta')).json();
-  // stats
   $('#stats').innerHTML = META.stats.map(s =>
     `<div class="stat"><div class="v">${s.value}</div><div class="l">${s.label}</div><div class="s">${s.source}</div></div>`).join('');
-  // sources
-  $('#sources').innerHTML = META.sources.map(s => `<a href="${s.url}" target="_blank">${s.name}</a>`).join(' · ');
-  // llm default
+  $('#sources').innerHTML = META.sources.map(s => `<a href="${s.url}" target="_blank">${s.name}</a>`).join(' &nbsp;·&nbsp; ');
   $('#llm').checked = !!META.llm_available;
-  // sample buttons
-  document.querySelectorAll('.samples button').forEach(b=>{
-    b.onclick = ()=>{ $('#doc').value = META.samples[b.dataset.k] || ''; };
-  });
+  document.querySelectorAll('.seg button').forEach(b => b.onclick = () => { $('#doc').value = META.samples[b.dataset.k] || ''; });
   $('#doc').value = META.samples.realistic_clean || '';
 }
 
-$('#file').addEventListener('change', async e=>{
+$('#file').addEventListener('change', async e => {
   const f = e.target.files[0]; if(!f) return;
   const fd = new FormData(); fd.append('file', f);
   const r = await (await fetch('/api/upload', {method:'POST', body:fd})).json();
@@ -169,57 +223,45 @@ $('#file').addEventListener('change', async e=>{
 });
 
 function ruleRow(code, violated){
-  const cls = violated ? 'fail' : 'pass';
-  const st = violated ? 'Violated' : 'OK';
-  return `<div class="rule ${cls}"><span class="dot"></span><span class="lbl">${META.rule_labels[code]}</span><span class="st">${st}</span></div>`;
+  return `<div class="rule ${violated?'fail':'pass'}"><span class="dot"></span>`+
+         `<span class="lbl">${META.rule_labels[code]}</span><span class="st">${violated?'Violated':'OK'}</span></div>`;
 }
-
 function stageCard(step){
-  const state = step.state === 'error' ? 'error' : 'ok';
-  const pill = step.state === 'error' ? '<span class="pill error">Flagged</span>' : '<span class="pill ok">Pass</span>';
+  const a = AGENTS[step.agent] || {ini:'··',c:'#7c8aff'};
+  const err = step.state === 'error';
+  const pill = err ? '<span class="pill error">Flagged</span>' : '<span class="pill ok">Pass</span>';
   let rules = '';
-  if(step.violations !== null && step.violations !== undefined){
-    rules = '<div class="rules">' + Object.keys(META.rule_labels)
-      .map(c => ruleRow(c, step.violations.includes(c))).join('') + '</div>';
+  if(step.violations != null){
+    rules = '<div class="rules">' + Object.keys(META.rule_labels).map(c => ruleRow(c, step.violations.includes(c))).join('') + '</div>';
   }
-  let rec = '';
-  if(step.record){
-    rec = `<details><summary>Under the hood — the record</summary><pre>${JSON.stringify(step.record, null, 2)}</pre></details>`;
-  }
-  const lines = step.lines.map((l,i)=>`<div${i===0?' style="color:var(--text)"':''}>${l}</div>`).join('');
-  return `<div class="stage ${state}"><div class="top"><div><div class="who">${step.agent}</div>`+
-         `<div class="title">${step.title}</div></div>${pill}</div>`+
-         `<div class="lines">${lines}</div>${rules}${rec}</div>`;
+  const rec = step.record ? `<details><summary>Under the hood — provenance record</summary><pre>${JSON.stringify(step.record,null,2)}</pre></details>` : '';
+  const lines = step.lines.map(l => `<div>${l}</div>`).join('');
+  return `<div class="stage"><div class="node" style="--c:${a.c}">${a.ini}</div>`+
+    `<div class="scard ${err?'error':''}" style="--c:${a.c}"><div class="stop"><div>`+
+    `<div class="who">${step.agent}</div><div class="stitle">${step.title}</div></div>${pill}</div>`+
+    `<div class="lines">${lines}</div>${rules}${rec}</div></div>`;
 }
 
 async function run(){
   const btn = $('#run'); btn.disabled = true; btn.textContent = 'Running…';
-  $('#verdict').className = 'verdict';
-  $('#timeline').innerHTML = '';
+  $('#verdict').className = 'verdict'; $('#timeline').innerHTML = '';
   try{
     const res = await (await fetch('/api/run', {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({document: $('#doc').value, use_llm: $('#llm').checked})})).json();
+      body: JSON.stringify({document:$('#doc').value, use_llm:$('#llm').checked})})).json();
     for(const step of res.steps){
-      const el = document.createElement('div');
-      el.innerHTML = stageCard(step);
-      const node = el.firstChild;
-      $('#timeline').appendChild(node);
-      await sleep(60); node.classList.add('in');
-      await sleep(420);
+      const holder = document.createElement('div'); holder.innerHTML = stageCard(step);
+      const node = holder.firstChild; $('#timeline').appendChild(node);
+      await sleep(70); node.classList.add('in'); await sleep(440);
     }
-    const o = res.outcome;
-    const v = $('#verdict');
-    const map = {RELEASED:['ok','Payment released'], BLOCKED:['bad','Payment blocked'],
-                 FROZEN:['bad','Payment frozen'], REJECTED:['warn','Invoice rejected']};
-    const [cls,h] = map[o.status] || ['warn', o.status];
+    const o = res.outcome, v = $('#verdict');
+    const map = {RELEASED:['ok','Payment released','ok'], BLOCKED:['bad','Payment blocked','bad'],
+                 FROZEN:['bad','Payment frozen','bad'], REJECTED:['warn','Invoice rejected','warn']};
+    const [cls,h,ic] = map[o.status] || ['warn',o.status,'warn'];
     v.className = 'verdict show ' + cls;
-    v.innerHTML = `<div class="h">${h}</div><div class="m">${o.message}</div>`;
-  }catch(e){
-    $('#timeline').innerHTML = `<div class="empty">Error: ${e}</div>`;
-  }
+    v.innerHTML = `<div class="vico">${ICONS[ic]}</div><div><div class="h">${h}</div><div class="m">${o.message}</div></div>`;
+  }catch(e){ $('#timeline').innerHTML = `<div class="empty">Error: ${e}</div>`; }
   btn.disabled = false; btn.textContent = 'Run pipeline';
 }
-
 $('#run').addEventListener('click', run);
 init();
 </script>
