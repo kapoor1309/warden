@@ -41,7 +41,7 @@ When a tampered invoice enters:
 3. **Threat-Intel** screens the account and confirms it's a known money-mule.
 4. **Enforcer** ejects the compromised agent and freezes the payment — before any money moves.
 
-Every decision is written to an explainable, downloadable audit log.
+Every decision is written to a **signed, tamper-evident** audit log you can download.
 
 ## Why it can't be fooled
 
@@ -67,7 +67,9 @@ Band's rooms are a security primitive here, not just a chat log:
 
 Malicious payloads are drawn from third-party agent-attack benchmarks — **AgentDojo** (banking
 suite) and **InjecAgent** — the same suites the field uses to grade defenses. A judge can supply
-their own tampered invoice and it is still caught.
+their own tampered invoice and it is still caught. The dashboard's **attack battery** fires a
+matrix of real attacks (payment redirect, amount tamper, process bypass, forged sign-off…) at the
+engine and blocks them **6/6**, deterministically.
 
 ## Run it
 
@@ -83,7 +85,7 @@ pip install -r requirements.txt
 python scripts/run_recruitment.py   # needs agent keys in .env
 ```
 
-**Offline core** — 49 passing tests prove the engine before any network exists:
+**Offline core** — 54 passing tests prove the engine before any network exists:
 ```bash
 python -m pytest tests/ -q
 ```
