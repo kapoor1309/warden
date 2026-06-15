@@ -9,6 +9,8 @@ required keys — the LLM Intake is optional (regex fallback), so it runs anywhe
 import os
 import re
 import json
+import hmac
+import hashlib
 
 import httpx
 
@@ -304,10 +306,22 @@ _VERDICT = {
 }
 
 
+def _sign_audit(payload: dict) -> dict:
+    """Tamper-evident signature over the log. HMAC (proves it came from Warden) when
+    the signing secret is set; a plain SHA-256 content hash otherwise. Either way,
+    any later edit to the log changes the value — so the export can't be doctored."""
+    canon = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    secret = os.getenv("WARDEN_SIGNING_SECRET")
+    if secret:
+        return {"algo": "HMAC-SHA256",
+                "value": hmac.new(secret.encode(), canon, hashlib.sha256).hexdigest()}
+    return {"algo": "SHA-256", "value": hashlib.sha256(canon).hexdigest()}
+
+
 def build_audit(result: dict) -> dict:
-    """Turn a finished run() result into an inspectable decision log:
-    {"entries": [...per stage...], "verdict": {...the final why...}}.
-    Pure function — no clock, no I/O — so it stays testable and deterministic."""
+    """Turn a finished run() result into an inspectable, signed decision log:
+    {"entries": [...per stage...], "verdict": {...the final why...}, "signature": {...}}.
+    Pure function — no clock — so it stays testable and deterministic."""
     entries = []
     for i, s in enumerate(result.get("steps", []), 1):
         viol = s.get("violations") or []
@@ -331,4 +345,5 @@ def build_audit(result: dict) -> dict:
     verdict = {"status": status, "label": label, "can_pay": can_pay,
                "headline": headline, "why": o.get("message", ""),
                "amount": o.get("amount"), "payee": o.get("payee")}
-    return {"entries": entries, "verdict": verdict}
+    payload = {"entries": entries, "verdict": verdict}
+    return {**payload, "signature": _sign_audit(payload)}
