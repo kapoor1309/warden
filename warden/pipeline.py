@@ -107,17 +107,23 @@ REALISTIC_POISONED = REALISTIC_CLEAN.replace(
 
 # ---- Intake extraction: real LLM agent, with a no-key regex fallback ---------
 def regex_extract(doc: str) -> dict:
-    inv = re.search(r"INV-\d+", doc)
+    inv = re.search(r"INV-[0-9][0-9-]*", doc)            # INV-1042 and INV-2026-04871
     ven = re.search(r"(?<![A-Za-z])V-\d+", doc)          # avoid matching inside "INV-1042"
-    amt = re.search(r"amount[^0-9]*?(\d[\d,]*)", doc, re.I)
-    # An account is an explicit ACC-xxx token or an IBAN-like string — never a
-    # random word after "account" (e.g. the "ACCOUNT UPDATE" header).
-    acc = re.search(r"\bACC-\w+", doc) or re.search(r"\b[A-Z]{2}\d{2}[A-Z0-9]{8,}\b", doc)
+    # Amount: prefer an explicit grand total, else "amount due", else nothing.
+    amt = (re.search(r"TOTAL\s*DUE[^0-9]*([0-9][\d,]*\.?\d*)", doc, re.I)
+           or re.search(r"amount[^0-9]*?([0-9][\d,]*\.?\d*)", doc, re.I))
+    # Payee account: an explicit "Account Number: NNN" line, or an ACC-xxx token,
+    # or an IBAN — never a random word after "account" (e.g. the "ACCOUNT UPDATE"
+    # header in the poisoned sample).
+    acc = (re.search(r"Account\s*Number\s*[:#]?\s*([A-Z0-9]+)", doc, re.I)
+           or re.search(r"\bACC-\w+", doc)
+           or re.search(r"\b[A-Z]{2}\d{2}[A-Z0-9 ]{8,}\b", doc))
+    acc_val = (acc.group(1) if (acc and acc.lastindex) else acc.group(0)) if acc else ""
     return {
         "invoice_id": inv.group(0) if inv else "",
         "vendor_id": ven.group(0) if ven else "",
-        "amount": int(amt.group(1).replace(",", "")) if amt else None,
-        "payee_account": acc.group(0) if acc else "",
+        "amount": _coerce_amount(amt.group(1)) if amt else None,
+        "payee_account": acc_val.strip(),
     }
 
 
@@ -274,3 +280,55 @@ def _money(n):
         return f"{int(n):,}"
     except (TypeError, ValueError):
         return str(n)
+
+
+# ---- Audit log: a plain-English "why" trail for a finished run ---------------
+# When a violation fires, this is the human-readable reason it failed. RULE_LABELS
+# holds the PASS statement; this holds the FAIL one.
+FAIL_REASONS = {
+    invariants.PAYEE_NOT_ON_FILE:    "the pay-to bank account is not the vendor's account on file",
+    invariants.AMOUNT_MISMATCH:      "the amount does not match the purchase order",
+    invariants.PO_VENDOR_MISMATCH:   "the invoice's vendor does not match the purchase order",
+    invariants.STAGE_OUT_OF_ORDER:   "a required approval step was skipped or run out of order",
+    invariants.INSTRUCTION_FROM_DOC: "the action was driven by text inside the document",
+    invariants.OUT_OF_ROLE:          "an agent acted outside its allowed role",
+    invariants.MALFORMED_RECORD:     "the handoff record was malformed",
+}
+
+# status -> (short label, can it proceed to payment?, one-line headline)
+_VERDICT = {
+    "RELEASED": ("CLEARED",  True,  "Passed every check — this invoice can proceed to payment."),
+    "BLOCKED":  ("BLOCKED",  False, "Stopped by Warden — this invoice must NOT be paid."),
+    "FROZEN":   ("FROZEN",   False, "Payment held — the signed sign-off did not verify."),
+    "REJECTED": ("REJECTED", False, "Failed validation — the invoice cannot proceed."),
+}
+
+
+def build_audit(result: dict) -> dict:
+    """Turn a finished run() result into an inspectable decision log:
+    {"entries": [...per stage...], "verdict": {...the final why...}}.
+    Pure function — no clock, no I/O — so it stays testable and deterministic."""
+    entries = []
+    for i, s in enumerate(result.get("steps", []), 1):
+        viol = s.get("violations") or []
+        if s.get("agent") == "Enforcer":
+            level = "block"
+        elif viol:
+            level = "flag"
+        elif s.get("state") == "error":
+            level = "alert"
+        else:
+            level = "pass"
+        details = list(s.get("lines") or [])
+        for code in viol:
+            details.append(f"FAILED CHECK — {FAIL_REASONS.get(code, code)} [{code}]")
+        entries.append({"seq": i, "actor": s.get("agent"), "level": level,
+                        "summary": s.get("title"), "details": details})
+
+    o = result.get("outcome", {})
+    status = o.get("status", "UNKNOWN")
+    label, can_pay, headline = _VERDICT.get(status, (status, False, ""))
+    verdict = {"status": status, "label": label, "can_pay": can_pay,
+               "headline": headline, "why": o.get("message", ""),
+               "amount": o.get("amount"), "payee": o.get("payee")}
+    return {"entries": entries, "verdict": verdict}

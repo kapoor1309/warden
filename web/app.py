@@ -21,7 +21,7 @@ load_dotenv()
 os.environ.setdefault("WARDEN_SIGNING_SECRET", "warden-console-demo-secret")
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from warden.pipeline import (run, RULE_LABELS, CLEAN_DOC, POISONED_DOC,
+from warden.pipeline import (run, build_audit, RULE_LABELS, CLEAN_DOC, POISONED_DOC,
                              REALISTIC_CLEAN, REALISTIC_POISONED)
 
 # Real, cited fraud figures (FBI IC3) shown on the dashboard.
@@ -66,7 +66,9 @@ def meta():
 
 @app.post("/api/run")
 def run_pipeline(req: RunReq):
-    return run(req.document, use_llm=req.use_llm)
+    result = run(req.document, use_llm=req.use_llm)
+    result["audit"] = build_audit(result)   # plain-English "why" trail
+    return result
 
 
 @app.post("/api/upload")
