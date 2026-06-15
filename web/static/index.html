@@ -122,9 +122,32 @@
   .empty svg{opacity:.4;margin-bottom:12px}
   /* decision log */
   .logcard{margin-top:22px}
-  .logcard>h2 .dl{margin-left:auto;background:var(--panel2);color:var(--muted);border:1px solid var(--border2);
+  .card>h2 .dl{margin-left:auto;background:var(--panel2);color:var(--muted);border:1px solid var(--border2);
     border-radius:8px;padding:6px 13px;font-size:11px;cursor:pointer;letter-spacing:.04em;text-transform:none;font-weight:600}
-  .logcard>h2 .dl:hover{border-color:var(--accent);color:var(--text)}
+  .card>h2 .dl:hover{border-color:var(--accent);color:var(--text)}
+  .card>h2 .dl:disabled{opacity:.5;cursor:default}
+  /* tamper-evident signature badge */
+  .sigbadge{display:inline-flex;align-items:center;gap:8px;margin-top:14px;font-size:11.5px;color:var(--muted);
+    border:1px solid var(--border2);border-radius:8px;padding:7px 12px}
+  .sigbadge svg{color:var(--green)} .sigbadge .mono{color:var(--faint)}
+  /* attack battery */
+  .atkcard{margin-top:22px}
+  .atkscore{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+  .atkscore .big{font-size:32px;font-weight:900;letter-spacing:-.02em}
+  .atkscore .big.ok{color:var(--green)} .atkscore .big.bad{color:var(--red)}
+  .atkscore .cap{color:var(--muted);font-size:13px}
+  .atkrow{display:flex;align-items:center;gap:14px;padding:13px 2px;border-bottom:1px solid var(--border);
+    opacity:0;transform:translateY(6px);transition:opacity .3s,transform .3s}
+  .atkrow.in{opacity:1;transform:none}
+  .atkrow:last-child{border-bottom:none}
+  .atkkind{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);
+    border:1px solid var(--border2);border-radius:999px;padding:5px 11px;white-space:nowrap;min-width:128px;text-align:center}
+  .atkmain{flex:1;min-width:0}
+  .atklabel{font-size:14px}.atkdetail{color:var(--faint);font-size:11.5px;margin-top:2px}
+  .atkbadge{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:4px 11px;border-radius:999px;border:1px solid;white-space:nowrap}
+  .atkbadge.ok{color:var(--green);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.08)}
+  .atkbadge.bad{color:var(--red);border-color:rgba(251,113,133,.4);background:rgba(251,113,133,.08)}
+  .atkempty{color:var(--faint);font-size:13px}
   .whybar{display:flex;align-items:center;gap:14px;border-radius:12px;padding:15px 18px;margin-bottom:18px;border:1px solid}
   .whybar .q{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
   .whybar .a{font-size:17px;font-weight:800;letter-spacing:.02em}
@@ -224,6 +247,17 @@
     </div>
   </section>
 
+  <section class="card atkcard" id="atkcard">
+    <h2>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      Attack battery — real boundary attacks
+      <button class="dl" id="runatk">▶ Run battery</button>
+    </h2>
+    <div class="body">
+      <div id="atkbody"><div class="atkempty">Fire a battery of real attacks (payment redirect, amount tamper, process bypass, forged sign-off…) straight at the engine and watch every one get blocked. Payloads include the AgentDojo banking IBAN.</div></div>
+    </div>
+  </section>
+
   <footer>
     <div>Sources: <span id="sources"></span></div>
     <div class="note">The company's vendor records are simulated (as any demo would be). The invoices are
@@ -287,12 +321,15 @@ let LAST = null;  // last run's audit, kept for the download button
 
 function renderLog(audit){
   if(!audit){ $('#logcard').style.display='none'; return; }
-  const ver = audit.verdict, can = ver.can_pay;
+  const ver = audit.verdict, can = ver.can_pay, sig = audit.signature || {};
+  const lock = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/></svg>';
   $('#whybar').className = 'whybar ' + (can ? 'yes' : 'no');
   $('#whybar').innerHTML =
     `<div><div class="q">Can this invoice proceed to payment?</div>`+
     `<div class="a">${can ? 'YES — '+ver.label : 'NO — '+ver.label}</div>`+
-    `<div class="why">${ver.headline} ${ver.why || ''}</div></div>`;
+    `<div class="why">${ver.headline} ${ver.why || ''}</div>`+
+    `<div class="sigbadge">${lock} Tamper-evident · ${sig.algo||'unsigned'} · `+
+    `<span class="mono">${(sig.value||'').slice(0,20)}…</span></div></div>`;
   $('#log').innerHTML = audit.entries.map(e => {
     const det = (e.details||[]).map(d => {
       const fail = d.startsWith('FAILED');
@@ -319,7 +356,11 @@ function downloadLog(){
     lines.push(`[${e.seq}] ${(e.actor||'—').toUpperCase()}  (${e.level})  ${e.summary||''}`);
     (e.details||[]).forEach(d => lines.push('      - ' + d));
   });
-  lines.push('----------------------------------------------------------------',
+  lines.push('----------------------------------------------------------------');
+  const sig = LAST.signature || {};
+  lines.push('Tamper-evident signature (' + (sig.algo||'unsigned') + '):',
+    '  ' + (sig.value||'n/a'),
+    'Any edit to the entries above changes this value.', '',
     'Warden — Agentic Payment Integrity. Decision is deterministic; no LLM in the gate.');
   const blob = new Blob([lines.join('\n')], {type:'text/plain'});
   const a = document.createElement('a');
@@ -349,8 +390,29 @@ async function run(){
   }catch(e){ $('#timeline').innerHTML = `<div class="empty">Error: ${e}</div>`; }
   btn.disabled = false; btn.textContent = 'Run pipeline';
 }
+async function runAttacks(){
+  const btn = $('#runatk'); btn.disabled = true; btn.textContent = 'Running…';
+  try{
+    const s = await (await fetch('/api/attacks')).json();
+    const ok = s.blocked === s.total;
+    $('#atkbody').innerHTML =
+      `<div class="atkscore"><span class="big ${ok?'ok':'bad'}">${s.blocked}/${s.total}</span>`+
+      `<span class="cap">attacks blocked deterministically — no LLM, no luck</span></div><div id="atkrows"></div>`;
+    const rows = $('#atkrows');
+    for(const r of s.results){
+      const d = document.createElement('div'); d.className = 'atkrow';
+      d.innerHTML = `<span class="atkkind">${r.kind}</span>`+
+        `<div class="atkmain"><div class="atklabel">${r.label}</div><div class="atkdetail">${r.detail}</div></div>`+
+        `<span class="atkbadge ${r.blocked?'ok':'bad'}">${r.blocked?'Blocked':'Missed'}</span>`;
+      rows.appendChild(d); await sleep(90); d.classList.add('in'); await sleep(200);
+    }
+  }catch(e){ $('#atkbody').innerHTML = `<div class="atkempty">Error: ${e}</div>`; }
+  btn.disabled = false; btn.textContent = '▶ Run battery';
+}
+
 $('#run').addEventListener('click', run);
 $('#dl').addEventListener('click', downloadLog);
+$('#runatk').addEventListener('click', runAttacks);
 init();
 </script>
 </body>

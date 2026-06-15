@@ -74,8 +74,15 @@ def meta():
 @app.post("/api/run")
 def run_pipeline(req: RunReq):
     result = run(req.document, use_llm=req.use_llm)
-    result["audit"] = build_audit(result)   # plain-English "why" trail
+    result["audit"] = build_audit(result)   # plain-English, signed "why" trail
     return result
+
+
+@app.get("/api/attacks")
+def attacks():
+    """Run the deterministic attack battery (no Band/LLM) for the scoreboard."""
+    from warden.attack_suite import run_suite
+    return run_suite()
 
 
 @app.post("/api/upload")
