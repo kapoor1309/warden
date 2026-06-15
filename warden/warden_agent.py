@@ -88,16 +88,26 @@ class WardenAdapter(SimpleAdapter):
             return
 
         print(f"[Warden] FLAG: {inv_id} @ stage '{stage}' -> {violations}")
+        # The suspect payee account, read from the record's facts (the value that
+        # would actually be paid) — not any agent's self-report. The Investigator
+        # hands this to Threat-Intel to screen.
+        suspect_account = (
+            (record.get("facts", {}) or {}).get("payee_account", {}) or {}
+        ).get("value")
         await tools.send_event(
             content=f"Warden flag on {inv_id}: {', '.join(violations)}",
             message_type="error",
-            metadata={"invoice_id": inv_id, "stage": stage, "violations": violations},
+            metadata={"invoice_id": inv_id, "stage": stage, "violations": violations,
+                      "suspect_account": suspect_account},
         )
+        flag = {"invoice_id": inv_id, "stage": stage, "violations": violations,
+                "suspect_account": suspect_account, "vendor_id": record.get("vendor_id")}
         await tools.send_message(
             content=(
                 f"@{self.investigator_handle} possible compromise on invoice {inv_id} "
                 f"at stage '{stage}'. Rule violations: {', '.join(violations)}. "
-                f"Please trace the chain and confirm."
+                f"Suspect payee account: {suspect_account}. Please trace the chain, "
+                f"screen the account, and confirm.\n" + record_lib.to_message(flag)
             ),
             mentions=[self.investigator_handle],
         )
@@ -119,10 +129,15 @@ class WardenAdapter(SimpleAdapter):
         token = paygate.sign(inv_id, on_file, amount, stages)
         signoff = {"warden_signoff": True, "invoice_id": inv_id, "vendor_id": vid,
                    "payee": on_file, "amount": amount, "stages": stages, "token": token}
-        await tools.send_message(
-            content=record_lib.to_message(signoff, f"Warden sign-off: {inv_id} clean through approved."),
-            mentions=[self.payer_handle],
-        )
+        try:
+            await tools.send_message(
+                content=record_lib.to_message(signoff, f"Warden sign-off: {inv_id} clean through approved."),
+                mentions=[self.payer_handle],
+            )
+        except Exception as e:
+            # Payer not in this room (e.g. a stale message from an old room). The
+            # sign-off only matters where a Payer is seated; elsewhere just skip.
+            print(f"[Warden] sign-off skipped for {inv_id}: {e}")
 
 
 async def _on_added(room_id, event):

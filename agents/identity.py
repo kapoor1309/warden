@@ -20,6 +20,7 @@ SLUGS = {
     "INVESTIGATOR": "investigator",
     "ENFORCER": "enforcer",
     "PAYER": "payer",
+    "THREAT_INTEL": "threat-intel",
 }
 
 
