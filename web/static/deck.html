@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Warden — Pitch Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070a12; --bg2:#0a0e18; --panel:#0f1420; --panel2:#0c111b; --border:#1b2433;
+    --border2:#252f41; --text:#eef2f8; --muted:#93a0b8; --faint:#5d6982;
+    --green:#34d399; --red:#fb7185; --amber:#fbbf24; --accent:#7c8aff; --accent2:#22d3ee;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);overflow:hidden;
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(1100px 600px at 12% -10%,rgba(124,138,255,.16),transparent 60%),
+                     radial-gradient(900px 600px at 100% 0%,rgba(34,211,238,.08),transparent 55%);
+    background-attachment:fixed}
+  .mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+  /* slide shell */
+  .slide{position:fixed;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:8vh 9vw;animation:fade .45s ease}
+  .slide.on{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .kicker{display:inline-flex;align-items:center;gap:9px;font-size:13px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);font-weight:600;margin-bottom:24px}
+  .kicker .bar{width:30px;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  h1{font-size:clamp(34px,5.4vw,68px);font-weight:900;letter-spacing:-.02em;line-height:1.04}
+  h2{font-size:clamp(28px,4vw,46px);font-weight:800;letter-spacing:-.015em;line-height:1.1;margin-bottom:26px}
+  .lead{font-size:clamp(17px,2.1vw,24px);color:var(--muted);line-height:1.5;max-width:60ch;margin-top:20px}
+  .grad{background:linear-gradient(120deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .red{color:var(--red)} .green{color:var(--green)} .amber{color:var(--amber)}
+  /* title slide */
+  .logo{width:74px;height:74px;border-radius:18px;display:grid;place-items:center;margin-bottom:30px;
+    background:linear-gradient(135deg,var(--accent),#5563e6);box-shadow:0 12px 44px rgba(124,138,255,.5)}
+  .mark{font-weight:900;letter-spacing:.3em;font-size:clamp(40px,7vw,84px);margin-left:.3em}
+  .tagrow{margin-top:34px;display:flex;gap:10px;flex-wrap:wrap}
+  .tag{font-size:13px;color:var(--muted);border:1px solid var(--border2);border-radius:999px;padding:8px 16px;letter-spacing:.02em}
+  /* big stats */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:14px}
+  .stat .v{font-size:clamp(34px,5vw,60px);font-weight:900;letter-spacing:-.02em}
+  .stat .l{color:var(--muted);font-size:15px;margin-top:6px;line-height:1.4}
+  .stat .s{color:var(--faint);font-size:12px;margin-top:9px}
+  .stat{border-left:3px solid;border-image:linear-gradient(var(--accent),var(--accent2)) 1;padding-left:18px}
+  /* bullets */
+  ul{list-style:none;margin-top:10px;display:grid;gap:16px;max-width:64ch}
+  li{font-size:clamp(16px,1.9vw,21px);color:var(--text);padding-left:34px;position:relative;line-height:1.45}
+  li::before{content:"";position:absolute;left:0;top:.55em;width:11px;height:11px;border-radius:3px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  li b{font-weight:700} li .sub{display:block;color:var(--muted);font-size:.82em;margin-top:3px}
+  li.bad::before{background:var(--red)} li.ok::before{background:var(--green)}
+  /* pipeline diagram */
+  .pipe{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:30px 0 14px}
+  .node{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .dot{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:15px;color:#fff;
+    border:3px solid var(--bg);box-shadow:0 0 0 1px var(--border2)}
+  .node .nm{font-size:12px;color:var(--muted)}
+  .arrow{color:var(--faint);font-size:22px;margin-bottom:22px}
+  .watch{margin-top:8px;color:var(--muted);font-size:15px}
+  .crew{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+  .crewtag{font-size:13px;border:1px solid var(--border2);border-radius:8px;padding:7px 13px;color:var(--text);display:inline-flex;align-items:center;gap:8px}
+  .crewtag i{width:8px;height:8px;border-radius:50%;display:inline-block}
+  /* two-column compare */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:14px}
+  .col{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--border);border-radius:16px;padding:26px}
+  .col.bad{border-color:rgba(251,113,133,.35)} .col.good{border-color:rgba(52,211,153,.35)}
+  .col h3{font-size:16px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px}
+  .col.bad h3{color:var(--red)} .col.good h3{color:var(--green)}
+  .col p{color:var(--muted);font-size:17px;line-height:1.5}
+  .quote{margin-top:26px;font-size:clamp(18px,2.2vw,26px);font-weight:600;line-height:1.4;max-width:62ch;
+    border-left:3px solid var(--accent);padding-left:20px}
+  /* steps */
+  .steps{display:grid;gap:14px;margin-top:10px;max-width:70ch}
+  .step{display:flex;gap:18px;align-items:flex-start;background:linear-gradient(90deg,var(--panel),transparent);
+    border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:12px;padding:16px 20px}
+  .step .n{font-weight:800;font-size:20px;color:var(--accent);min-width:26px}
+  .step .t{font-size:clamp(15px,1.8vw,19px)} .step .t b{font-weight:700}
+  .step .t span{color:var(--muted);display:block;font-size:.85em;margin-top:2px}
+  /* footer / chrome */
+  .pageno{position:fixed;right:30px;bottom:22px;color:var(--faint);font-size:13px;z-index:30}
+  .progress{position:fixed;left:0;top:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+    width:0;transition:width .35s;z-index:30}
+  .hint{position:fixed;left:30px;bottom:22px;color:var(--faint);font-size:12px;z-index:30}
+  .closebig{font-size:clamp(30px,4.6vw,58px);font-weight:900;letter-spacing:-.02em;line-height:1.1;max-width:18ch}
+  .meta{margin-top:30px;color:var(--muted);font-size:15px;line-height:1.8}
+  .meta a{color:var(--accent);text-decoration:none}
+  /* PDF export: every slide on its own landscape page, colours forced on */
+  @media print{
+    @page{size:1280px 720px;margin:0}
+    *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+    html,body{overflow:visible !important;background:#070a12 !important;background-image:none !important}
+    .slide{position:relative !important;display:flex !important;page-break-after:always;break-after:page;
+      inset:auto !important;width:1280px;height:720px;animation:none;background:#070a12;overflow:hidden}
+    .slide:last-of-type{page-break-after:auto}
+    /* gradient-clip text goes invisible in PDF — paint it a solid light accent instead */
+    .grad{-webkit-text-fill-color:#9bb0ff !important;color:#9bb0ff !important;background:none !important}
+    .pageno,.progress,.hint{display:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="prog"></div>
+
+<!-- 1 — TITLE -->
+<section class="slide on">
+  <div class="logo">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z" fill="#fff" fill-opacity=".96"/><path d="M9 12l2 2 4-4" stroke="#5563e6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <div class="mark">WARDEN</div>
+  <h1 style="margin-top:26px">Catch the hijacked agent<br><span class="grad">before the money moves.</span></h1>
+  <div class="tagrow">
+    <span class="tag">Band of Agents Hackathon</span>
+    <span class="tag">Track 3 · Regulated &amp; High-Stakes</span>
+  </div>
+</section>
+
+<!-- 2 — PROBLEM -->
+<section class="slide">
+  <div class="kicker"><span class="bar"></span> The problem</div>
+  <h2>Companies now let <span class="grad">teams of AI agents</span> pay their invoices.</h2>
+  <div class="stats">
+    <div class="stat"><div class="v red">$2.77B</div><div class="l">Lost to Business Email Compromise in 2024</div><div class="s">FBI IC3 · 21,442 complaints</div></div>
+    <div class="stat"><div class="v">$55.5B</div><div class="l">Exposed losses, 2013–2023</div><div class="s">FBI IC3 · PSA240911</div></div>
+    <div class="stat"><div class="v">~$129K</div><div class="l">Average loss per incident</div><div class="s">derived, FBI IC3 2024</div></div>
+  </div>
+  <p class="lead">One tampered invoice — bank account secretly swapped to the attacker's — and the agents approve it and wire the money. <b class="red">They never notice.</b></p>
+</section>
+
+<!-- 3 — INSIGHT -->
+<section class="slide">
+  <div class="kicker"><span class="bar"></span> The insight</div>
+  <h2>The dangerous attacker isn't outside your crew.<br>It's <span class="grad">one of your own agents</span>, hijacked.</h2>
+  <ul>
+    <li class="bad"><b>Everyone else</b> secures one agent's input and output.</li>
+    <li class="ok"><b>Warden</b> secures the <b>teamwork between agents</b> — the open gap.<span class="sub">It watches every handoff and catches the teammate a poisoned invoice turned against you.</span></li>
+  </ul>
+</section>
+
+<!-- 4 — WHAT IT DOES -->
+<section class="slide">
+  <div class="kicker"><span class="bar"></span> What Warden does</div>
+  <div class="pipe">
+    <div class="node"><div class="dot" style="background:#7c8aff">IN</div><div class="nm">Intake</div></div>
+    <span class="arrow">→</span>
+    <div class="node"><div class="dot" style="background:#38bdf8">MA</div><div class="nm">Matcher</div></div>
+    <span class="arrow">→</span>
+    <div class="node"><div class="dot" style="background:#34d399">AP</div><div class="nm">Approver</div></div>
+    <span class="arrow">→</span>
+    <div class="node"><div class="dot" style="background:#a3a3a3">$</div><div class="nm">Payer</div></div>
+  </div>
+  <div class="watch">↑ the normal bill-paying line — <b>watched by the security crew</b> ↓</div>
+  <div class="crew">
+    <span class="crewtag" style="border-color:rgba(34,211,238,.5)"><i style="background:#22d3ee"></i> Warden</span>
+    <span class="crewtag" style="border-color:rgba(167,139,250,.5)"><i style="background:#a78bfa"></i> Investigator</span>
+    <span class="crewtag" style="border-color:rgba(251,113,133,.5)"><i style="background:#fb7185"></i> Threat-Intel</span>
+    <span class="crewtag" style="border-color:rgba(245,158,11,.5)"><i style="background:#f59e0b"></i> Enforcer</span>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div class="t"><b>Warden</b> re-derives the real payee from company records — sees it doesn't match — flags it.</div></div>
+    <div class="step"><div class="n">2</div><div class="t"><b>Investigator</b> recruits a Threat-Intel specialist <b>live into the room.</b><span>An agent pulling another agent into the conversation.</span></div></div>
+    <div class="step"><div class="n">3</div><div class="t"><b>Threat-Intel</b> confirms the account is a known money-mule.</div></div>
+    <div class="step"><div class="n">4</div><div class="t"><b>Enforcer</b> ejects the compromised agent &amp; freezes payment — <b class="green">before any money moves.</b></div></div>
+  </div>
+</section>
+
+<!-- 5 — HOW WE USED BAND -->
+<section class="slide">
+  <div class="kicker"><span class="bar"></span> Built on Band</div>
+  <h2>We use Band's rooms as a <span class="grad">security primitive</span> — not just a chat log.</h2>
+  <ul>
+    <li><b>Live recruitment</b> — the Investigator calls <span class="mono">add_participant</span> to pull Threat-Intel into the room mid-investigation. <i>Agents recruiting agents.</i></li>
+    <li><b>Containment</b> — the Enforcer calls <span class="mono">remove_participant</span> to eject the compromised agent. <span class="sub">Verified live: a member can't remove the owner — so Warden owns the room.</span></li>
+    <li><b>Join/leave tripwire</b> — participant callbacks mean a hijacked agent can't quietly pull in a helper or slip away unseen.</li>
+  </ul>
+</section>
+
+<!-- 6 — THE MOAT -->
+<section class="slide">
+  <div class="kicker"><span class="bar"></span> Why it can't be fooled</div>
+  <div class="cols">
+    <div class="col bad"><h3>A committee of LLM agents</h3><p>All of them read the same poisoned document. One injection fools the whole panel. The defense is theater.</p></div>
+    <div class="col good"><h3>Warden's deterministic gate</h3><p>Never reads the document as instructions. Re-derives the truth from the company's own records. The allow/deny call is plain, testable code.</p></div>
+  </div>
+  <div class="quote">“No LLM in the gate. Catching a brand-new attack <span class="grad">never requires new code</span> — Warden checks what <i>correct</i> looks like, not a catalogue of known attacks.”</div>
+</section>
+
+<!-- 7 — PROOF -->
+<section class="slide">
+  <div class="kicker"><span class="bar"></span> It actually works</div>
+  <h2>Real attacks. Real platform. <span class="grad">Provable.</span></h2>
+  <ul>
+    <li class="ok"><b>Real third-party attacks</b> — payloads drawn from AgentDojo (banking suite) &amp; InjecAgent, the benchmarks the field uses. A judge can supply their own.</li>
+    <li class="ok"><b>Runs live on Band</b> — agents recruit and eject each other on the real platform, not a mockup.</li>
+    <li class="ok"><b>49 passing tests</b> on the deterministic core — the brain is proven before any network exists.</li>
+    <li class="ok"><b>Explainable audit trail</b> — every decision logged in plain English and exportable. Built for a regulated world.</li>
+  </ul>
+</section>
+
+<!-- 8 — CLOSE -->
+<section class="slide">
+  <div class="logo" style="width:56px;height:56px;border-radius:14px;margin-bottom:24px">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z" fill="#fff" fill-opacity=".96"/><path d="M9 12l2 2 4-4" stroke="#5563e6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <div class="closebig">Everyone else built agents that do a job.<br><span class="grad">Warden is the one that catches the traitor.</span></div>
+  <div class="meta">
+    Team Warden · Parshiv &amp; Yash<br>
+    <a href="https://github.com/kapoor1309/warden">github.com/kapoor1309/warden</a>
+  </div>
+</section>
+
+<div class="pageno" id="pageno">01 / 08</div>
+<div class="hint">← → to navigate · press P to print/PDF</div>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  let i = 0;
+  function show(n){
+    i = Math.max(0, Math.min(slides.length-1, n));
+    slides.forEach((s,k)=>s.classList.toggle('on', k===i));
+    document.getElementById('pageno').textContent =
+      String(i+1).padStart(2,'0') + ' / ' + String(slides.length).padStart(2,'0');
+    document.getElementById('prog').style.width = ((i)/(slides.length-1)*100) + '%';
+  }
+  document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown') show(i+1);
+    else if(e.key==='ArrowLeft'||e.key==='PageUp') show(i-1);
+    else if(e.key==='Home') show(0);
+    else if(e.key==='End') show(slides.length-1);
+    else if(e.key==='p'||e.key==='P') window.print();
+  });
+  document.addEventListener('click', e=>{ if(!e.target.closest('a')) show(i+1); });
+  show(0);
+</script>
+</body>
+</html>

@@ -37,7 +37,9 @@ SOURCES = [
 ]
 
 app = FastAPI(title="Warden Console")
-_INDEX = (Path(__file__).resolve().parent / "static" / "index.html").read_text(encoding="utf-8")
+_STATIC = Path(__file__).resolve().parent / "static"
+_INDEX = (_STATIC / "index.html").read_text(encoding="utf-8")
+_DECK = (_STATIC / "deck.html").read_text(encoding="utf-8")
 
 
 class RunReq(BaseModel):
@@ -48,6 +50,11 @@ class RunReq(BaseModel):
 @app.get("/", response_class=HTMLResponse)
 def index():
     return _INDEX
+
+
+@app.get("/deck", response_class=HTMLResponse)
+def deck():
+    return _DECK
 
 
 @app.get("/api/meta")
