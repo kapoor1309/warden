@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070a12; --text:#eef2f8; --muted:#93a0b8; --faint:#5d6982;
+    --accent:#7c8aff; --accent2:#22d3ee; --green:#34d399;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1280px;height:720px;overflow:hidden}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;position:relative;
+    background-image:radial-gradient(1000px 700px at 8% -12%,rgba(124,138,255,.22),transparent 60%),
+                     radial-gradient(900px 700px at 108% 8%,rgba(34,211,238,.13),transparent 55%);}
+  .grad{background:linear-gradient(120deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  /* giant faint shield on the right as a watermark */
+  .ghost{position:absolute;right:-90px;top:50%;transform:translateY(-50%);opacity:.06}
+  .wrap{position:absolute;left:92px;top:50%;transform:translateY(-50%);max-width:840px}
+  .brandrow{display:flex;align-items:center;gap:22px;margin-bottom:40px}
+  .logo{width:88px;height:88px;border-radius:22px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--accent),#5563e6);box-shadow:0 16px 50px rgba(124,138,255,.55)}
+  .mark{font-weight:900;letter-spacing:.32em;font-size:62px;margin-left:.32em}
+  h1{font-size:62px;font-weight:900;letter-spacing:-.02em;line-height:1.05}
+  .sub{margin-top:24px;color:var(--muted);font-size:23px;line-height:1.5;max-width:42ch}
+  .tags{margin-top:44px;display:flex;gap:12px}
+  .tag{font-size:16px;color:var(--muted);border:1px solid #2a3650;border-radius:999px;padding:10px 20px;letter-spacing:.02em}
+  .tag.live{color:var(--green);border-color:rgba(52,211,153,.45);background:rgba(52,211,153,.08);
+    display:flex;align-items:center;gap:9px}
+  .tag.live .dot{width:9px;height:9px;border-radius:50%;background:var(--green)}
+  .url{position:absolute;left:92px;bottom:46px;color:var(--faint);font-size:16px;font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+  <div class="ghost">
+    <svg width="620" height="620" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z" fill="#7c8aff"/></svg>
+  </div>
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="logo">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z" fill="#fff" fill-opacity=".96"/><path d="M9 12l2 2 4-4" stroke="#5563e6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="mark">WARDEN</div>
+    </div>
+    <h1>Catch the hijacked agent<br><span class="grad">before the money moves.</span></h1>
+    <div class="sub">A crew of security agents that watches an AI invoice workflow, spots the teammate a fake invoice hijacked, and ejects it before any payment is sent.</div>
+  </div>
+</body>
+</html>

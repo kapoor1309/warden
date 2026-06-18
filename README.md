@@ -116,7 +116,7 @@ account — never the account an agent reported.
 ## Tech
 
 Python · [Band SDK](https://band.ai) · LangGraph · FastAPI · AI/ML API · Featherless · HMAC-signed pay-gate.
-Engineering notes live in [`CLAUDE.md`](CLAUDE.md).
+Engineering notes live in [`docs/CLAUDE.md`](docs/CLAUDE.md).
 
 ## License
 
